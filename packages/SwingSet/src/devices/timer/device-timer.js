@@ -151,17 +151,17 @@ function makeTimerMap(state = undefined) {
   // We don't expect this to be called often, so we don't optimize for it.
   /**
    *
-   * @param {Waker} targetHandler
+   * @param {Waker} target
    * @returns {bigint[]}
    */
-  function remove(targetHandler) {
+  function remove(target) {
     /** @type {bigint[]} */
     const droppedTimes = [];
     let i = 0;
     while (i < schedule.length) {
       const { time, handlers } = schedule[i];
       if (handlers.length === 1) {
-        if (handlers[0].handler === targetHandler) {
+        if (handlers[0].handler === target) {
           schedule.splice(i, 1);
           droppedTimes.push(time);
         } else {
@@ -169,10 +169,8 @@ function makeTimerMap(state = undefined) {
         }
       } else {
         // Nothing prevents a particular handler from appearing more than once
-        for (const { handler } of handlers) {
-          // @ts-expect-error xxx Waker vs IndexedHandler
-          if (handler === targetHandler && handlers.indexOf(handler) !== -1) {
-            // @ts-expect-error xxx Waker vs IndexedHandler
+        for (const handler of handlers) {
+          if (handler.handler === target && handlers.indexOf(handler) !== -1) {
             handlers.splice(handlers.indexOf(handler), 1);
             droppedTimes.push(time);
           }
