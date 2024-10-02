@@ -23,6 +23,7 @@ export const defaultProposalBuilder = async ({ publishRef, install }, opts) => {
 const configurations = {
   MAINNET: {
     committeeName: 'Economic Committee',
+    // TODO: Update the addresses after confirmation
     voterAddresses: {
       gov1: 'agoric1gx9uu7y6c90rqruhesae2t7c2vlw4uyyxlqxrx',
       gov2: 'agoric1d4228cvelf8tj65f4h7n2td90sscavln2283h5',
@@ -35,6 +36,18 @@ const configurations = {
         'agoric1el6zqs8ggctj5vwyukyk4fh50wcpdpwgugd5l5',
         'agoric1zayxg4e9vd0es9c9jlpt36qtth255txjp6a8yc',
       ],
+    },
+  },
+  DEVNET: {
+    committeeName: 'Economic Committee',
+    // TODO: Update the addresses after confirmation
+    voterAddresses: {
+      gov1: 'agoric1ldmtatp24qlllgxmrsjzcpe20fvlkp448zcuce',
+      gov2: 'agoric140dmkrz2e42ergjj7gyvejhzmjzurvqeq82ang',
+    },
+    highPrioritySendersConfig: {
+      addressesToAdd: [],
+      addressesToRemove: ['agoric1w8wktaur4zf8qmmtn3n7x3r0jhsjkjntcm3u6h'],
     },
   },
   A3P_INTEGRATION: {
