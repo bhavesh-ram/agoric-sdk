@@ -7,6 +7,9 @@ import {
 } from '@agoric/internal/src/lib-chainStorage.js';
 import { reserveThenDeposit } from './utils.js';
 
+/** @import {EconomyBootstrapPowers} from './econ-behaviors.js' */
+/** @import {CommitteeElectorateCreatorFacet} from '@agoric/governance/src/committee.js'; */
+
 const trace = (...args) => console.log('GovReplaceCommiteeAndCharter', ...args);
 
 const traced = (label, x) => {
@@ -26,6 +29,22 @@ const sanitizePathSegment = name => {
   return candidate;
 };
 
+/**
+ * Handles the configuration updates for high-priority senders list by adding or
+ * removing addresses.
+ *
+ * @param {EconomyBootstrapPowers} powers - The bootstrap powers required for
+ *   economic operations.
+ * @param {{
+ *   options: {
+ *     highPrioritySendersConfig: {
+ *       addressesToAdd: string[];
+ *       addressesToRemove: string[];
+ *     };
+ *   };
+ * }} config
+ *   - The configuration object containing lists of addresses to add or remove.
+ */
 const handlehighPrioritySendersList = async (
   { consume: { highPrioritySendersManager: highPrioritySendersManagerP } },
   { options: { highPrioritySendersConfig } },
@@ -33,7 +52,14 @@ const handlehighPrioritySendersList = async (
   const HIGH_PRIORITY_SENDERS_NAMESPACE = 'economicCommittee';
   const highPrioritySendersManager = await highPrioritySendersManagerP;
 
-  highPrioritySendersManager || Fail`highPrioritySendersManager is not defined`;
+  assert(
+    highPrioritySendersManager,
+    `highPriority SendersManager is not defined`,
+  );
+
+  if (!highPrioritySendersManager) {
+    Fail`highPrioritySendersManager is not defined`;
+  }
 
   const { addressesToAdd, addressesToRemove } = highPrioritySendersConfig;
 
@@ -56,6 +82,25 @@ const handlehighPrioritySendersList = async (
   );
 };
 
+/**
+ * Invites Economic Committee (EC) members by distributing voting invitations to
+ * the specified addresses.
+ *
+ * @param {EconomyBootstrapPowers} powers - The bootstrap powers required for
+ *   economic operations, including `namesByAddressAdmin` used for managing
+ *   names.
+ * @param {{
+ *   options: {
+ *     voterAddresses: Record<string, string>;
+ *     economicCommitteeCreatorFacet: CommitteeElectorateCreatorFacet;
+ *   };
+ * }} config
+ *   - The configuration object containing voter addresses and the economic
+ *       committee facet to create voter invitations.
+ *
+ * @returns {Promise<void>} A promise that resolves once the invitations have
+ *   been distributed.
+ */
 const inviteECMembers = async (
   { consume: { namesByAddressAdmin } },
   { options: { voterAddresses = {}, economicCommitteeCreatorFacet } },
@@ -87,6 +132,24 @@ const inviteECMembers = async (
   await distributeInvitations(zip(values(voterAddresses), invitations));
 };
 
+/**
+ * Starts a new Economic Committee (EC) by creating an instance with the
+ * provided committee specifications.
+ *
+ * - @param {EconomyBootstrapPowers} powers - The resources and capabilities
+ *   required to start the committee.
+ *
+ * @param {{
+ *   options: {
+ *     committeeName: string;
+ *     committeeSize: number;
+ *   };
+ * }} config
+ *   - Configuration object containing the name and size of the committee.
+ *
+ * @returns {Promise<CommitteeElectorateCreatorFacet>} A promise that resolves
+ *   to the creator facet of the newly created EC instance.
+ */
 const startNewEconomicCommittee = async (
   {
     consume: { board, chainStorage, diagnostics, zoe },
@@ -151,6 +214,28 @@ const startNewEconomicCommittee = async (
   return creatorFacet;
 };
 
+/**
+ * Replaces the electorate for governance contracts by creating a new Economic
+ * Committee and updating contracts with the new electorate's creator facet.
+ *
+ * @param {EconomyBootstrapPowers} permittedPowers - The resources and
+ *   capabilities needed for operations, including access to governance
+ *   contracts and the PSM kit.
+ * @param {{
+ *   options: {
+ *     committeeName: string;
+ *     voterAddresses: Record<string, string>;
+ *     highPrioritySendersConfig: {
+ *       addressesToAdd: string[];
+ *       addressesToRemove: string[];
+ *     };
+ *   };
+ * }} config
+ *   - Configuration object containing the committee details and governance options.
+ *
+ * @returns {Promise<void>} A promise that resolves when the electorate has been
+ *   replaced.
+ */
 export const replaceElectorate = async (permittedPowers, config) => {
   const { committeeName, voterAddresses, highPrioritySendersConfig } =
     config.options;
