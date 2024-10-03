@@ -152,7 +152,7 @@ const inviteECMembers = async (
  */
 const startNewEconomicCommittee = async (
   {
-    consume: { board, chainStorage, diagnostics, startUpgradable },
+    consume: { board, chainStorage, startUpgradable },
     produce: { economicCommitteeKit, economicCommitteeCreatorFacet },
     installation: {
       consume: { committee },
@@ -195,9 +195,7 @@ const startNewEconomicCommittee = async (
   const startResult = await E(startUpgradable)({
     label: 'economicCommittee',
     installation: committee,
-    privateArgs: {
-      ...privateArgs,
-    },
+    privateArgs,
     terms,
   });
 
@@ -209,8 +207,6 @@ const startNewEconomicCommittee = async (
   economicCommitteeKit.resolve(
     harden({ ...startResult, label: 'economicCommittee' }),
   );
-
-  await E(diagnostics).savePrivateArgs(startResult.instance, privateArgs);
 
   economicCommittee.reset();
   economicCommittee.resolve(instance);
@@ -314,7 +310,6 @@ export const getManifestForReplaceAllElectorates = async (
         psmKit: true,
         governedContractKits: true,
         chainStorage: true,
-        diagnostics: true,
         highPrioritySendersManager: true,
         namesByAddressAdmin: true,
         // Rest of these are designed to be widely shared
