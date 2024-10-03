@@ -169,27 +169,28 @@ export const replaceElectorate = async (permittedPowers, config) => {
     await permittedPowers.consume.governedContractKits;
   const psmKitMap = await permittedPowers.consume.psmKit;
 
-  const creatorFacets = [
-    ...[...governedContractKitsMap.values()].map(
-      governedContractKit => governedContractKit.governorCreatorFacet,
-    ),
-    ...[...psmKitMap.values()].map(psmKit => psmKit.psmGovernorCreatorFacet),
+  const governanceDetails = [
+    ...[...governedContractKitsMap.values()].map(governedContractKit => ({
+      creatorFacet: governedContractKit.governorCreatorFacet,
+      label: governedContractKit.label,
+    })),
+    ...[...psmKitMap.values()].map(psmKit => ({
+      creatorFacet: psmKit.psmGovernorCreatorFacet,
+      label: psmKit.label,
+    })),
   ];
 
   await Promise.all(
-    creatorFacets.map(async creatorFacet => {
-      trace(
-        'Getting PoserInvitation from economicCommitteeCreatorFacet...',
-        creatorFacet,
-      );
+    governanceDetails.map(async ({ creatorFacet, label }) => {
+      trace(`Getting PoserInvitation for ${label}...`);
       const newElectoratePoser = await E(
         economicCommitteeCreatorFacet,
       ).getPoserInvitation();
-      trace('Successfully received newElectoratePoser');
+      trace(`Successfully received newElectoratePoser for ${label}`);
 
-      trace('Replace electorate');
+      trace(`Replacing electorate for ${label}`);
       await E(creatorFacet).replaceElectorate(newElectoratePoser);
-      trace('Successfully replaced electorate');
+      trace(`Successfully replaced electorate for ${label}`);
     }),
   );
 
