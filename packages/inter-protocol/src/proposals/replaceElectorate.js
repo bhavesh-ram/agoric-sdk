@@ -159,14 +159,14 @@ export const replaceElectorate = async (permittedPowers, config) => {
     },
   );
 
+  const governedContractKitsMap =
+    await permittedPowers.consume.governedContractKits;
   const psmKitMap = await permittedPowers.consume.psmKit;
 
   const creatorFacets = [
-    E.get(permittedPowers.consume.reserveKit).governorCreatorFacet,
-    E.get(permittedPowers.consume.auctioneerKit).governorCreatorFacet,
-    E.get(permittedPowers.consume.vaultFactoryKit).governorCreatorFacet,
-    E.get(permittedPowers.consume.provisionPoolStartResult)
-      .governorCreatorFacet,
+    ...[...governedContractKitsMap.values()].map(
+      governedContractKit => governedContractKit.governorCreatorFacet,
+    ),
     ...[...psmKitMap.values()].map(psmKit => psmKit.psmGovernorCreatorFacet),
   ];
 
@@ -212,18 +212,15 @@ export const getManifestForReplaceElectorate = async (
   manifest: {
     [replaceElectorate.name]: {
       consume: {
-        reserveKit: true,
-        auctioneerKit: true,
-        vaultFactoryKit: true,
         psmKit: true,
-        provisionPoolStartResult: true,
-
-        board: true,
+        governedContractKits: true,
         chainStorage: true,
         diagnostics: true,
-        zoe: true,
         highPrioritySendersManager: true,
         namesByAddressAdmin: true,
+        // Rest of these are designed to be widely shared
+        board: true,
+        zoe: true,
       },
       produce: {
         economicCommitteeKit: true,
