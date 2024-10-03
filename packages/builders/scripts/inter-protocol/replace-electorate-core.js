@@ -1,3 +1,4 @@
+/* global process */
 import { makeHelpers } from '@agoric/deploy-script-support';
 import { getManifestForReplaceAllElectorates } from '@agoric/inter-protocol/src/proposals/replaceElectorate.js';
 
