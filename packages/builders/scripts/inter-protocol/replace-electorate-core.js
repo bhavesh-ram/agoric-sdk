@@ -1,12 +1,13 @@
+/* global process */
 import { makeHelpers } from '@agoric/deploy-script-support';
-import { getManifestForReplaceElectorate } from '@agoric/inter-protocol/src/proposals/replaceElectorate.js';
+import { getManifestForReplaceAllElectorates } from '@agoric/inter-protocol/src/proposals/replaceElectorate.js';
 
 /** @type {import('@agoric/deploy-script-support/src/externalTypes.js').CoreEvalBuilder} */
 export const defaultProposalBuilder = async ({ publishRef, install }, opts) => {
   return harden({
     sourceSpec: '@agoric/inter-protocol/src/proposals/replaceElectorate.js',
     getManifestCall: [
-      getManifestForReplaceElectorate.name,
+      getManifestForReplaceAllElectorates.name,
       {
         ...opts,
       },
@@ -17,6 +18,7 @@ export const defaultProposalBuilder = async ({ publishRef, install }, opts) => {
 const configurations = {
   MAINNET: {
     committeeName: 'Economic Committee',
+    // TODO: Update the addresses after confirmation
     voterAddresses: {
       gov1: 'agoric1gx9uu7y6c90rqruhesae2t7c2vlw4uyyxlqxrx',
       gov2: 'agoric1d4228cvelf8tj65f4h7n2td90sscavln2283h5',
@@ -31,6 +33,18 @@ const configurations = {
       ],
     },
   },
+  DEVNET: {
+    committeeName: 'Economic Committee',
+    // TODO: Update the addresses after confirmation
+    voterAddresses: {
+      gov1: 'agoric1ldmtatp24qlllgxmrsjzcpe20fvlkp448zcuce',
+      gov2: 'agoric140dmkrz2e42ergjj7gyvejhzmjzurvqeq82ang',
+    },
+    highPrioritySendersConfig: {
+      addressesToAdd: [],
+      addressesToRemove: ['agoric1w8wktaur4zf8qmmtn3n7x3r0jhsjkjntcm3u6h'],
+    },
+  },
   A3P_INTEGRATION: {
     committeeName: 'Economic Committee',
     voterAddresses: {
@@ -38,7 +52,7 @@ const configurations = {
     },
     highPrioritySendersConfig: {
       addressesToAdd: [],
-      addressesToRemove: [],
+      addressesToRemove: ['agoric1wrfh296eu2z34p6pah7q04jjuyj3mxu9v98277'],
     },
   },
   BOOTSTRAP_TEST: {
@@ -63,7 +77,8 @@ const { keys } = Object;
 const Usage = `agoric run replace-electorate-core.js ${keys(configurations).join(' | ')}`;
 export default async (homeP, endowments) => {
   const { scriptArgs } = endowments;
-  const config = configurations[scriptArgs?.[0]];
+  const variant = scriptArgs?.[0];
+  const config = configurations[variant];
   if (!config) {
     console.error(Usage);
     process.exit(1);
@@ -72,7 +87,7 @@ export default async (homeP, endowments) => {
 
   const { writeCoreEval } = await makeHelpers(homeP, endowments);
 
-  await writeCoreEval('replace-committee', (utils, opts) =>
+  await writeCoreEval(`replace-committee-${variant}`, (utils, opts) =>
     defaultProposalBuilder(utils, { ...opts, ...config }),
   );
 };

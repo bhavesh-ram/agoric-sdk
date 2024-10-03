@@ -1,12 +1,21 @@
 // @ts-check
 import { E } from '@endo/eventual-send';
+import { Fail } from '@endo/errors';
 import {
   assertPathSegment,
   makeStorageNodeChild,
 } from '@agoric/internal/src/lib-chainStorage.js';
 import { reserveThenDeposit } from './utils.js';
 
+/** @import {EconomyBootstrapPowers} from './econ-behaviors.js' */
+/** @import {CommitteeElectorateCreatorFacet} from '@agoric/governance/src/committee.js'; */
+
 const trace = (...args) => console.log('GovReplaceCommiteeAndCharter', ...args);
+
+const traced = (label, x) => {
+  trace(label, x);
+  return x;
+};
 
 const { values } = Object;
 
@@ -20,6 +29,22 @@ const sanitizePathSegment = name => {
   return candidate;
 };
 
+/**
+ * Handles the configuration updates for high-priority senders list by adding or
+ * removing addresses.
+ *
+ * @param {EconomyBootstrapPowers} powers - The bootstrap powers required for
+ *   economic operations.
+ * @param {{
+ *   options: {
+ *     highPrioritySendersConfig: {
+ *       addressesToAdd: string[];
+ *       addressesToRemove: string[];
+ *     };
+ *   };
+ * }} config
+ *   - The configuration object containing lists of addresses to add or remove.
+ */
 const handlehighPrioritySendersList = async (
   { consume: { highPrioritySendersManager: highPrioritySendersManagerP } },
   { options: { highPrioritySendersConfig } },
@@ -27,29 +52,55 @@ const handlehighPrioritySendersList = async (
   const HIGH_PRIORITY_SENDERS_NAMESPACE = 'economicCommittee';
   const highPrioritySendersManager = await highPrioritySendersManagerP;
 
+  assert(
+    highPrioritySendersManager,
+    `highPriority SendersManager is not defined`,
+  );
+
   if (!highPrioritySendersManager) {
-    throw Error('highPrioritySendersManager is not defined');
+    Fail`highPrioritySendersManager is not defined`;
   }
 
   const { addressesToAdd, addressesToRemove } = highPrioritySendersConfig;
 
-  for (const addr of addressesToAdd) {
-    trace(`Adding ${addr} to High Priority Senders list`);
-    await E(highPrioritySendersManager).add(
-      HIGH_PRIORITY_SENDERS_NAMESPACE,
-      addr,
-    );
-  }
+  await Promise.all(
+    addressesToAdd.map(addr =>
+      E(highPrioritySendersManager).add(
+        HIGH_PRIORITY_SENDERS_NAMESPACE,
+        traced('High Priority Senders: adding', addr),
+      ),
+    ),
+  );
 
-  for (const addr of addressesToRemove) {
-    trace(`Removing ${addr} from High Priority Senders list`);
-    await E(highPrioritySendersManager).remove(
-      HIGH_PRIORITY_SENDERS_NAMESPACE,
-      addr,
-    );
-  }
+  await Promise.all(
+    addressesToRemove.map(addr =>
+      E(highPrioritySendersManager).remove(
+        HIGH_PRIORITY_SENDERS_NAMESPACE,
+        traced('High Priority Senders: removing', addr),
+      ),
+    ),
+  );
 };
 
+/**
+ * Invites Economic Committee (EC) members by distributing voting invitations to
+ * the specified addresses.
+ *
+ * @param {EconomyBootstrapPowers} powers - The bootstrap powers required for
+ *   economic operations, including `namesByAddressAdmin` used for managing
+ *   names.
+ * @param {{
+ *   options: {
+ *     voterAddresses: Record<string, string>;
+ *     economicCommitteeCreatorFacet: CommitteeElectorateCreatorFacet;
+ *   };
+ * }} config
+ *   - The configuration object containing voter addresses and the economic
+ *       committee facet to create voter invitations.
+ *
+ * @returns {Promise<void>} A promise that resolves once the invitations have
+ *   been distributed.
+ */
 const inviteECMembers = async (
   { consume: { namesByAddressAdmin } },
   { options: { voterAddresses = {}, economicCommitteeCreatorFacet } },
@@ -97,9 +148,27 @@ const inviteToEconCharter = async (
   );
 };
 
+/**
+ * Starts a new Economic Committee (EC) by creating an instance with the
+ * provided committee specifications.
+ *
+ * - @param {EconomyBootstrapPowers} powers - The resources and capabilities
+ *   required to start the committee.
+ *
+ * @param {{
+ *   options: {
+ *     committeeName: string;
+ *     committeeSize: number;
+ *   };
+ * }} config
+ *   - Configuration object containing the name and size of the committee.
+ *
+ * @returns {Promise<CommitteeElectorateCreatorFacet>} A promise that resolves
+ *   to the creator facet of the newly created EC instance.
+ */
 const startNewEconomicCommittee = async (
   {
-    consume: { board, chainStorage, diagnostics, zoe },
+    consume: { board, chainStorage, startUpgradable },
     produce: { economicCommitteeKit, economicCommitteeCreatorFacet },
     installation: {
       consume: { committee },
@@ -134,13 +203,18 @@ const startNewEconomicCommittee = async (
     marshaller,
   };
 
-  const startResult = await E(zoe).startInstance(
-    committee,
-    {},
-    { committeeName, committeeSize },
+  const terms = {
+    committeeName,
+    committeeSize,
+  };
+
+  const startResult = await E(startUpgradable)({
+    label: 'economicCommittee',
+    installation: committee,
     privateArgs,
-    'economicCommittee',
-  );
+    terms,
+  });
+
   const { instance, creatorFacet } = startResult;
 
   trace('Started new EC Committee Instance Successfully');
@@ -149,8 +223,6 @@ const startNewEconomicCommittee = async (
   economicCommitteeKit.resolve(
     harden({ ...startResult, label: 'economicCommittee' }),
   );
-
-  await E(diagnostics).savePrivateArgs(startResult.instance, privateArgs);
 
   economicCommittee.reset();
   economicCommittee.resolve(instance);
@@ -220,7 +292,29 @@ const addGovernorsToEconCharter = async (
   }
 };
 
-export const replaceElectorate = async (permittedPowers, config) => {
+/**
+ * Replaces the electorate for governance contracts by creating a new Economic
+ * Committee and updating contracts with the new electorate's creator facet.
+ *
+ * @param {EconomyBootstrapPowers} permittedPowers - The resources and
+ *   capabilities needed for operations, including access to governance
+ *   contracts and the PSM kit.
+ * @param {{
+ *   options: {
+ *     committeeName: string;
+ *     voterAddresses: Record<string, string>;
+ *     highPrioritySendersConfig: {
+ *       addressesToAdd: string[];
+ *       addressesToRemove: string[];
+ *     };
+ *   };
+ * }} config
+ *   - Configuration object containing the committee details and governance options.
+ *
+ * @returns {Promise<void>} A promise that resolves when the electorate has been
+ *   replaced.
+ */
+export const replaceAllElectorates = async (permittedPowers, config) => {
   const { committeeName, voterAddresses, highPrioritySendersConfig } =
     config.options;
 
@@ -238,19 +332,28 @@ export const replaceElectorate = async (permittedPowers, config) => {
     await permittedPowers.consume.governedContractKits;
   const psmKitMap = await permittedPowers.consume.psmKit;
 
-  const creatorFacets = [
-    ...[...governedContractKitsMap.values()].map(
-      governedContractKit => governedContractKit.governorCreatorFacet,
-    ),
-    ...[...psmKitMap.values()].map(psmKit => psmKit.psmGovernorCreatorFacet),
+  const governanceDetails = [
+    ...[...governedContractKitsMap.values()].map(governedContractKit => ({
+      creatorFacet: governedContractKit.governorCreatorFacet,
+      label: governedContractKit.label,
+    })),
+    ...[...psmKitMap.values()].map(psmKit => ({
+      creatorFacet: psmKit.psmGovernorCreatorFacet,
+      label: psmKit.label,
+    })),
   ];
 
   await Promise.all(
-    creatorFacets.map(async creatorFacet => {
+    governanceDetails.map(async ({ creatorFacet, label }) => {
+      trace(`Getting PoserInvitation for ${label}...`);
       const newElectoratePoser = await E(
         economicCommitteeCreatorFacet,
       ).getPoserInvitation();
+      trace(`Successfully received newElectoratePoser for ${label}`);
+
+      trace(`Replacing electorate for ${label}`);
       await E(creatorFacet).replaceElectorate(newElectoratePoser);
+      trace(`Successfully replaced electorate for ${label}`);
     }),
   );
 
@@ -281,21 +384,23 @@ export const replaceElectorate = async (permittedPowers, config) => {
   trace('Installed New EC Charter');
 };
 
-harden(replaceElectorate);
+harden(replaceAllElectorates);
 
-export const getManifestForReplaceElectorate = async (_, options) => ({
+export const getManifestForReplaceAllElectorates = async (
+  { economicCommitteeRef: _economicCommitteeRef },
+  options,
+) => ({
   manifest: {
-    [replaceElectorate.name]: {
+    [replaceAllElectorates.name]: {
       consume: {
         psmKit: true,
         governedContractKits: true,
-
-        board: true,
         chainStorage: true,
-        diagnostics: true,
-        zoe: true,
         highPrioritySendersManager: true,
         namesByAddressAdmin: true,
+        // Rest of these are designed to be widely shared
+        board: true,
+        startUpgradable: true,
       },
       produce: {
         econCharterKit: true,

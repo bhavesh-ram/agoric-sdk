@@ -159,12 +159,14 @@ test.serial(
       method: 'children',
       args: [highPrioritySenderKey],
     });
-    t.deepEqual(data.sort(), wallets.slice(0).sort());
+    t.deepEqual(data.sort(), [...wallets].sort());
   },
 );
 
 test.serial('replace committee', async t => {
-  const { buildProposal, evalProposal } = t.context;
+  const { buildProposal, evalProposal, storage } = t.context;
+
+  const preEvalAgoricNames = makeAgoricNamesRemotesFromFakeStorage(storage);
   await evalProposal(
     buildProposal(
       '@agoric/builders/scripts/inter-protocol/replace-electorate-core.js',
@@ -172,7 +174,13 @@ test.serial('replace committee', async t => {
     ),
   );
   await eventLoopIteration();
-  t.true(true); // just to avoid failure
+
+  const postEvalAgoricNames = makeAgoricNamesRemotesFromFakeStorage(storage);
+
+  t.not(
+    preEvalAgoricNames.instance.economicCommittee,
+    postEvalAgoricNames.instance.economicCommittee,
+  );
 });
 
 test.serial(
