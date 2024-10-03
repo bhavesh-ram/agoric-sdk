@@ -1,5 +1,6 @@
 // @ts-check
 import { E } from '@endo/eventual-send';
+import { Fail } from '@endo/errors';
 import {
   assertPathSegment,
   makeStorageNodeChild,
@@ -7,6 +8,11 @@ import {
 import { reserveThenDeposit } from './utils.js';
 
 const trace = (...args) => console.log('GovReplaceCommiteeAndCharter', ...args);
+
+const traced = (label, x) => {
+  trace(label, x);
+  return x;
+};
 
 const { values } = Object;
 
@@ -27,27 +33,27 @@ const handlehighPrioritySendersList = async (
   const HIGH_PRIORITY_SENDERS_NAMESPACE = 'economicCommittee';
   const highPrioritySendersManager = await highPrioritySendersManagerP;
 
-  if (!highPrioritySendersManager) {
-    throw Error('highPrioritySendersManager is not defined');
-  }
+  highPrioritySendersManager || Fail`highPrioritySendersManager is not defined`;
 
   const { addressesToAdd, addressesToRemove } = highPrioritySendersConfig;
 
-  for (const addr of addressesToAdd) {
-    trace(`Adding ${addr} to High Priority Senders list`);
-    await E(highPrioritySendersManager).add(
-      HIGH_PRIORITY_SENDERS_NAMESPACE,
-      addr,
-    );
-  }
+  await Promise.all(
+    addressesToAdd.map(addr =>
+      E(highPrioritySendersManager).add(
+        HIGH_PRIORITY_SENDERS_NAMESPACE,
+        traced('High Priority Senders: adding', addr),
+      ),
+    ),
+  );
 
-  for (const addr of addressesToRemove) {
-    trace(`Removing ${addr} from High Priority Senders list`);
-    await E(highPrioritySendersManager).remove(
-      HIGH_PRIORITY_SENDERS_NAMESPACE,
-      addr,
-    );
-  }
+  await Promise.all(
+    addressesToRemove.map(addr =>
+      E(highPrioritySendersManager).remove(
+        HIGH_PRIORITY_SENDERS_NAMESPACE,
+        traced('High Priority Senders: removing', addr),
+      ),
+    ),
+  );
 };
 
 const inviteECMembers = async (
