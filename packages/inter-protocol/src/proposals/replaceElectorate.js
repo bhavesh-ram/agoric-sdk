@@ -236,7 +236,7 @@ const startNewEconomicCommittee = async (
  * @returns {Promise<void>} A promise that resolves when the electorate has been
  *   replaced.
  */
-export const replaceElectorate = async (permittedPowers, config) => {
+export const replaceAllElectorates = async (permittedPowers, config) => {
   const { committeeName, voterAddresses, highPrioritySendersConfig } =
     config.options;
 
@@ -295,14 +295,14 @@ export const replaceElectorate = async (permittedPowers, config) => {
   trace('Installed New Economic Committee');
 };
 
-harden(replaceElectorate);
+harden(replaceAllElectorates);
 
-export const getManifestForReplaceElectorate = async (
+export const getManifestForReplaceAllElectorates = async (
   { economicCommitteeRef: _economicCommitteeRef },
   options,
 ) => ({
   manifest: {
-    [replaceElectorate.name]: {
+    [replaceAllElectorates.name]: {
       consume: {
         psmKit: true,
         governedContractKits: true,
