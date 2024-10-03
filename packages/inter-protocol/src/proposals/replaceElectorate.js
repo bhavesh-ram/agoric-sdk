@@ -152,7 +152,7 @@ const inviteECMembers = async (
  */
 const startNewEconomicCommittee = async (
   {
-    consume: { board, chainStorage, diagnostics, zoe },
+    consume: { board, chainStorage, diagnostics, startUpgradable },
     produce: { economicCommitteeKit, economicCommitteeCreatorFacet },
     installation: {
       consume: { committee },
@@ -187,13 +187,20 @@ const startNewEconomicCommittee = async (
     marshaller,
   };
 
-  const startResult = await E(zoe).startInstance(
-    committee,
-    {},
-    { committeeName, committeeSize },
-    privateArgs,
-    'economicCommittee',
-  );
+  const terms = {
+    committeeName,
+    committeeSize,
+  };
+
+  const startResult = await E(startUpgradable)({
+    label: 'economicCommittee',
+    installation: committee,
+    privateArgs: {
+      ...privateArgs,
+    },
+    terms,
+  });
+
   const { instance, creatorFacet } = startResult;
 
   trace('Started new EC Committee Instance Successfully');
@@ -312,7 +319,7 @@ export const getManifestForReplaceAllElectorates = async (
         namesByAddressAdmin: true,
         // Rest of these are designed to be widely shared
         board: true,
-        zoe: true,
+        startUpgradable: true,
       },
       produce: {
         economicCommitteeKit: true,
