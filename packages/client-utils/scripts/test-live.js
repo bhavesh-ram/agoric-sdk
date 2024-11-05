@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-import '@endo/init';
+import '@endo/init/legacy.js';
 
 import process from 'node:process';
 import assert from 'node:assert/strict';
