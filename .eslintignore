@@ -2,4 +2,4 @@
 packages/cosmic-proto/dist
 packages/cosmic-proto/src/codegen/
 packages/client-utils/dist
-packages/client-utils/dist
+packages/client-utils/src/codegen/
