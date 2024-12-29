@@ -23,17 +23,12 @@ module.exports = {
 
   // Recommended config
   configs: {
-    recommended: [
-      {
-        plugins: {
-          // @ts-expect-error used before declaration
-          '@agoric': plugin,
-        },
-        rules: {
-          '@agoric/start-function-prelude': 'error',
-          '@agoric/group-jsdoc-imports': 'warning',
-        },
+    recommended: {
+      plugins: ['@agoric'],
+      rules: {
+        '@agoric/start-function-prelude': 'error',
+        '@agoric/group-jsdoc-imports': 'warning',
       },
-    ],
+    },
   },
 };
