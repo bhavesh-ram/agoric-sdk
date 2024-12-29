@@ -4,6 +4,8 @@
  * @import {OfferSpec} from '@agoric/smart-wallet/src/offers.js';
  * @import {ExecuteOfferAction} from '@agoric/smart-wallet/src/smartWallet.js';
  * @import {USDCProposalShapes} from '../pool-share-math.js';
+ * @import {SmartWalletKit} from '@agoric/client-utils';
+ * @import {PoolMetrics} from '../types.js';
  */
 
 import {
@@ -47,7 +49,7 @@ const parseUSDCAmount = (amountString, usdc) => {
  * @param {Command} program
  * @param {{
  *   fetch?: Window['fetch'];
- *    smartWalletKit?: import('@agoric/client-utils').SmartWalletKit;
+ *    smartWalletKit?: SmartWalletKit;
  *   stdout: typeof process.stdout;
  *   stderr: typeof process.stderr;
  *   env: typeof process.env;
@@ -141,7 +143,7 @@ export const addLPCommands = (
 
       const usdcAmount = parseUSDCAmount(opts.amount, usdc);
 
-      /** @type {import('../types.js').PoolMetrics} */
+      /** @type {PoolMetrics} */
       // @ts-expect-error it treats this as "unknown"
       const metrics = await swk.readPublished('fastUsdc.poolMetrics');
       const fastLPAmount = ceilDivideBy(usdcAmount, metrics.shareWorth);

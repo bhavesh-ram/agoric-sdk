@@ -20,6 +20,7 @@ import { EvmHashShape } from '../type-guards.js';
  * @import {TargetRegistration} from '@agoric/vats/src/bridge-target.js';
  * @import {NobleAddress, LiquidityPoolKit, FeeConfig, EvmHash, LogFn} from '../types.js';
  * @import {StatusManager} from './status-manager.js';
+ * @import {VowTools} from '@agoric/vow';
  */
 
 /**
@@ -39,7 +40,7 @@ const makeMintedEarlyKey = (addr, amount) =>
  * @param {Pick<ZCF, 'makeEmptySeatKit' | 'atomicRearrange'>} caps.zcf
  * @param {FeeConfig} caps.feeConfig
  * @param {HostOf<WithdrawToSeat>} caps.withdrawToSeat
- * @param {import('@agoric/vow').VowTools} caps.vowTools
+ * @param {VowTools} caps.vowTools
  * @param {ChainHub} caps.chainHub
  * @param {LogFn} [caps.log]
  */

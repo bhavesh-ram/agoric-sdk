@@ -15,6 +15,8 @@ import {
  * @import {MapStore, SetStore} from '@agoric/store';
  * @import {Zone} from '@agoric/zone';
  * @import {CctpTxEvidence, NobleAddress, PendingTx, EvmHash, LogFn, TransactionRecord, EvidenceWithRisk, RiskAssessment} from '../types.js';
+ * @import {NatValue} from '@agoric/ertp';
+ * @import {RepayAmountKWR} from './liquidity-pool.js';
  */
 
 /**
@@ -261,7 +263,7 @@ export const prepareStatusManager = (
        * Record result of ADVANCING
        *
        * @param {NobleAddress} nfa Noble Forwarding Account
-       * @param {import('@agoric/ertp').NatValue} amount
+       * @param {NatValue} amount
        * @param {boolean} success - Advanced vs. AdvanceFailed
        * @throws {Error} if nothing to advance
        */
@@ -338,7 +340,7 @@ export const prepareStatusManager = (
        * Mark a transaction as `DISBURSED`
        *
        * @param {EvmHash} txHash
-       * @param {import('./liquidity-pool.js').RepayAmountKWR} split
+       * @param {RepayAmountKWR} split
        */
       disbursed(txHash, split) {
         void publishTxnRecord(

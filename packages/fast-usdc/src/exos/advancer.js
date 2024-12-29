@@ -25,6 +25,7 @@ import { makeFeeTools } from '../utils/fees.js';
  * @import {CctpTxEvidence, AddressHook, EvmHash, FeeConfig, LogFn, NobleAddress, EvidenceWithRisk} from '../types.js';
  * @import {StatusManager} from './status-manager.js';
  * @import {LiquidityPoolKit} from './liquidity-pool.js';
+ * @import {SettlerKit} from './settler.js';
  */
 
 /**
@@ -114,7 +115,7 @@ export const prepareAdvancerKit = (
     AdvancerKitI,
     /**
      * @param {{
-     *   notifyFacet: import('./settler.js').SettlerKit['notify'];
+     *   notifyFacet: SettlerKit['notify'];
      *   borrowerFacet: LiquidityPoolKit['borrower'];
      *   poolAccount: HostInterface<OrchestrationAccount<{chainId: 'agoric'}>>;
      *   settlementAddress: ChainAddress;
