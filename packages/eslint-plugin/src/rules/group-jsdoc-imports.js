@@ -16,10 +16,6 @@
  *
  * @type {import('eslint').Rule.RuleModule}
  */
-/**
- * ESLint rule: group-jsdoc-imports (one-fix-per-inline-import version)
- */
-
 module.exports = {
   meta: {
     type: 'suggestion',
