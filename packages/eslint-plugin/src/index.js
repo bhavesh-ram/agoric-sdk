@@ -27,7 +27,7 @@ module.exports = {
       plugins: ['@agoric'],
       rules: {
         '@agoric/start-function-prelude': 'error',
-        '@agoric/group-jsdoc-imports': 'warning',
+        '@agoric/group-jsdoc-imports': 'warn',
       },
     },
   },
