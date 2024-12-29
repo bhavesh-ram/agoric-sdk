@@ -6,7 +6,6 @@ const pkg = JSON.parse(
 );
 
 // Import rules
-import dollarSign from './rules/dollar-sign.js';
 import startFunctionPrelude from './rules/start-function-prelude.js';
 import groupJsdocImports from './rules/group-jsdoc-imports.js';
 
@@ -18,7 +17,6 @@ const plugin = {
 
   // Rule definitions
   rules: {
-    'dollar-sign': dollarSign,
     'start-function-prelude': startFunctionPrelude,
     'group-jsdoc-imports': groupJsdocImports,
   },
@@ -32,7 +30,6 @@ const plugin = {
           '@agoric': plugin,
         },
         rules: {
-          '@agoric/dollar-sign': 'error',
           '@agoric/start-function-prelude': 'error',
           '@agoric/group-jsdoc-imports': 'warning',
         },
