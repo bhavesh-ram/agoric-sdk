@@ -74,6 +74,7 @@ module.exports = {
   plugins: ['@typescript-eslint', 'prettier', 'require-extensions'],
   extends: [
     '@agoric',
+    'plugin:@agoric/recommended',
     'plugin:ava/recommended',
     'plugin:require-extensions/recommended',
   ],
