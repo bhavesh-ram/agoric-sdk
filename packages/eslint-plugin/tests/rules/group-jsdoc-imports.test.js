@@ -27,12 +27,12 @@ const options = {};
   ],
   invalid: [
     {
-      code: `/** @type {import('@agoric/casting').FollowerOptions} */
+      code: `/** @import {VBankAssetDetail} from '@agoric/vats/tools/board-utils.js'; */
+/** @type {import('@agoric/casting').FollowerOptions} */
 const options = {};`,
       options: [{ paths: ['@agoric/'] }],
-      output: `/**
- * @import {FollowerOptions} from '@agoric/casting';
- */
+      output: `/** @import {FollowerOptions} from '@agoric/casting';
+* @import {VBankAssetDetail} from '@agoric/vats/tools/board-utils.js'; */
 /** @type {FollowerOptions} */
 const options = {};`,
       errors: [
@@ -48,7 +48,7 @@ const options = {};`,
       options: [{ paths: ['@agoric/'] }],
       output: `/**
  * @import {Something} from '@agoric/other';
- * @import {FollowerOptions} from '@agoric/casting';
+* @import {FollowerOptions} from '@agoric/casting';
  */
 /** @type {FollowerOptions} */
 const options = {};`,

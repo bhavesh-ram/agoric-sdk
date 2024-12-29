@@ -153,7 +153,7 @@ module.exports = {
                 newLines.splice(
                   lastLineIndex,
                   0,
-                  ` * @import {${typeName}} from '${importPath}';`,
+                  `* @import {${typeName}} from '${importPath}';`,
                 );
                 const newCommentValue = newLines.join('\n');
                 fixOps.push(
