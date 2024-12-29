@@ -11,6 +11,7 @@ export const ICS20_TRANSFER_SUCCESS_RESULT = 'AQ==';
  * @import {Vow, VowTools} from '@agoric/vow';
  * @import {LocalChainAccount} from '@agoric/vats/src/localchain.js';
  * @import {PacketOptions} from './packet-tools.js';
+ * @import {Zone} from '@agoric/base-zone';
  */
 
 const { Fail, bare } = assert;
@@ -56,7 +57,7 @@ export const createSequencePattern = sequence => {
 harden(createSequencePattern);
 
 /**
- * @param {import('@agoric/base-zone').Zone} zone
+ * @param {Zone} zone
  * @param {VowTools & { makeIBCReplyKit: MakeIBCReplyKit }} powers
  */
 export const prepareIBCTransferSender = (zone, { watch, makeIBCReplyKit }) => {
@@ -153,7 +154,7 @@ export const prepareIBCTransferSender = (zone, { watch, makeIBCReplyKit }) => {
 harden(prepareIBCTransferSender);
 
 /**
- * @param {import('@agoric/base-zone').Zone} zone
+ * @param {Zone} zone
  * @param {VowTools} vowTools
  */
 export const prepareIBCReplyKit = (zone, vowTools) => {
@@ -205,7 +206,7 @@ harden(prepareIBCReplyKit);
 /** @typedef {ReturnType<typeof prepareIBCReplyKit>} MakeIBCReplyKit */
 
 /**
- * @param {import('@agoric/base-zone').Zone} zone
+ * @param {Zone} zone
  * @param {VowTools} vowTools
  */
 export const prepareIBCTools = (zone, vowTools) => {

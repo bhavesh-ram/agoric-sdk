@@ -9,7 +9,7 @@ This directory contains sample contracts showcasing the Orchestration API. Each 
 
 ## In Progress
 
-The following contracts are a work in progress as they contain bindings that need to be promptly updated. 
+The following contracts are a work in progress as they contain bindings that need to be promptly updated.
 
 - **stake-bld.contract.js**: BLD token staking on Agoric
 - **stake-ica.contract.js**: Interchain account creation for remote staking

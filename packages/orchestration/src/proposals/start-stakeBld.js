@@ -1,3 +1,6 @@
+/**
+ * @import {start} from '../../src/examples/stake-bld.contract.js';
+ */
 import { makeTracer } from '@agoric/internal';
 import { makeStorageNodeChild } from '@agoric/internal/src/lib-chainStorage.js';
 import { Stake } from '@agoric/internal/src/tokens.js';
@@ -9,9 +12,7 @@ const trace = makeTracer('StartStakeBld', true);
  * @param {BootstrapPowers & {
  *   installation: {
  *     consume: {
- *       stakeBld: Installation<
- *         import('../../src/examples/stake-bld.contract.js').start
- *       >;
+ *       stakeBld: Installation<start>;
  *     };
  *   };
  * }} powers
@@ -49,9 +50,7 @@ export const startStakeBld = async ({
   ]);
 
   /**
-   * @type {StartUpgradableOpts<
-   *   import('../../src/examples/stake-bld.contract.js').start
-   * >}
+   * @type {StartUpgradableOpts<start>}
    */
   const startOpts = {
     label: 'stakeBld',

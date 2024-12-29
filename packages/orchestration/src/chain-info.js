@@ -4,7 +4,10 @@ import { HubName, normalizeConnectionInfo } from './exos/chain-hub.js';
 import fetchedChainInfo from './fetched-chain-info.js'; // Refresh with scripts/refresh-chain-info.ts
 import { CosmosAssetInfoShape, CosmosChainInfoShape } from './typeGuards.js';
 
-/** @import {Chain, CosmosAssetInfo, CosmosChainInfo, EthChainInfo, IBCConnectionInfo} from './types.js'; */
+/**
+ * @import {NameHubKit} from '@agoric/vats';
+ * @import {Chain, CosmosAssetInfo, CosmosChainInfo, EthChainInfo, IBCConnectionInfo} from './types.js';
+ */
 /** @import {NameAdmin} from '@agoric/vats'; */
 
 /**
@@ -97,7 +100,7 @@ export const registerChain = async (
 /**
  * Register all the chains that are known statically.
  *
- * @param {ERef<import('@agoric/vats').NameHubKit['nameAdmin']>} agoricNamesAdmin
+ * @param {ERef<NameHubKit['nameAdmin']>} agoricNamesAdmin
  * @param {(...messages: string[]) => void} [log]
  */
 export const registerKnownChains = async (agoricNamesAdmin, log) => {

@@ -1,3 +1,6 @@
+/**
+ * @import {NameHubKit} from '@agoric/vats';
+ */
 import { Fail } from '@endo/errors';
 import { E, Far } from '@endo/far';
 import { makeMarshal } from '@endo/marshal';
@@ -13,7 +16,7 @@ const trace = makeTracer('InitChainInfo', true);
  */
 
 /**
- * @param {ERef<import('@agoric/vats').NameHubKit['nameAdmin']>} agoricNamesAdmin
+ * @param {ERef<NameHubKit['nameAdmin']>} agoricNamesAdmin
  * @param {ERef<StorageNode | null>} chainStorageP
  */
 const publishChainInfoToChainStorage = async (

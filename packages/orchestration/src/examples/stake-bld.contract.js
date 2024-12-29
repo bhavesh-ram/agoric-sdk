@@ -19,6 +19,7 @@ import { makeZoeTools } from '../utils/zoe-tools.js';
  * @import {Remote} from '@agoric/internal';
  * @import {TimerService} from '@agoric/time';
  * @import {LocalChain} from '@agoric/vats/src/localchain.js';
+ * @import {Baggage} from '@agoric/vat-data';
  */
 
 const trace = makeTracer('StakeBld');
@@ -32,7 +33,7 @@ const trace = makeTracer('StakeBld');
  *   storageNode: StorageNode;
  *   timerService: TimerService;
  * }} privateArgs
- * @param {import('@agoric/vat-data').Baggage} baggage
+ * @param {Baggage} baggage
  */
 export const start = async (zcf, privateArgs, baggage) => {
   const zone = makeDurableZone(baggage);
