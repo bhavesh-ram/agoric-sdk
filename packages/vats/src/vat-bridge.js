@@ -1,3 +1,6 @@
+/**
+ * @import {ScopedBridgeManager} from './types.js';
+ */
 import { Fail } from '@endo/errors';
 import { Far } from '@endo/far';
 import { makeDurableZone } from '@agoric/zone/durable.js';
@@ -20,7 +23,7 @@ export function buildRootObject(vatPowers, _args, baggage) {
   );
 
   /**
-   * @param {ERef<import('./types.js').ScopedBridgeManager<'storage'>>} storageBridgeManagerP
+   * @param {ERef<ScopedBridgeManager<'storage'>>} storageBridgeManagerP
    * @param {string} rootPath must be unique (caller responsibility to ensure)
    * @param {object} [options]
    */

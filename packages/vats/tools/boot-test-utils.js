@@ -1,3 +1,6 @@
+/**
+ * @import {VatAdminFacet} from '@agoric/swingset-vat';
+ */
 import { Fail } from '@endo/errors';
 import { E } from '@endo/far';
 import { Far } from '@endo/marshal';
@@ -125,8 +128,7 @@ export const makePopulatedFakeVatAdmin = () => {
       vatParameters.zcfBundleName = 'zcf';
     }
     const baggage = makeScalarBigMapStore('baggage');
-    const adminNode =
-      /** @type {import('@agoric/swingset-vat').VatAdminFacet} */ ({});
+    const adminNode = /** @type {VatAdminFacet} */ ({});
     const rootP = buildRoot({}, vatParameters, baggage);
     return E.when(rootP, root => harden({ root, adminNode }));
   };

@@ -1,3 +1,6 @@
+/**
+ * @import {Passable} from '@endo/marshal';
+ */
 import { E } from '@endo/far';
 import { assertKey } from '@agoric/store';
 import { canBeDurable } from '@agoric/vat-data';
@@ -31,7 +34,7 @@ export const makeLogHooks = log =>
  * Note: caller is responsible for synchronization in case of onResolve() called
  * with a promise.
  *
- * @param {MapStore<string, import('@endo/marshal').Passable>} store
+ * @param {MapStore<string, Passable>} store
  * @param {typeof console.log} [log]
  * @returns {PromiseSpaceHooks}
  */

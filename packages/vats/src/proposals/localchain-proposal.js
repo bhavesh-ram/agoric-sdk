@@ -1,3 +1,11 @@
+/**
+ * @import {BridgeManager} from '../types';
+ * @import {ScopedBridgeManager} from '../types';
+ * @import {BankManager} from '../vat-bank.js';
+ * @import {TransferMiddleware} from '../transfer.js';
+ * @import {LocalChainVat} from '../vat-localchain.js';
+ * @import {LocalChain} from '../localchain.js';
+ */
 // @ts-check
 import { E } from '@endo/far';
 import { BridgeId as BRIDGE_ID } from '@agoric/internal';
@@ -6,10 +14,10 @@ import { makeScopedBridge } from '../bridge.js';
 /**
  * @param {BootstrapPowers & {
  *   consume: {
- *     bridgeManager: import('../types').BridgeManager;
- *     localchainBridgeManager: import('../types').ScopedBridgeManager<'vlocalchain'>;
- *     bankManager: Promise<import('../vat-bank.js').BankManager>;
- *     transferMiddleware: Promise<import('../transfer.js').TransferMiddleware>;
+ *     bridgeManager: BridgeManager;
+ *     localchainBridgeManager: ScopedBridgeManager<'vlocalchain'>;
+ *     bankManager: Promise<BankManager>;
+ *     transferMiddleware: Promise<TransferMiddleware>;
  *   };
  *   produce: {
  *     localchain: Producer<any>;
@@ -21,7 +29,7 @@ import { makeScopedBridge } from '../bridge.js';
  * @param {{ localchainRef: VatSourceRef }} options.options
  *
  * @typedef {{
- *   localchain: ERef<import('../vat-localchain.js').LocalChainVat>;
+ *   localchain: ERef<LocalChainVat>;
  * }} LocalChainVats
  */
 export const setupLocalChainVat = async (
@@ -55,7 +63,7 @@ export const setupLocalChainVat = async (
 
   localchainVat.reset();
   localchainVat.resolve(vats.localchain);
-  /** @type {import('../types').ScopedBridgeManager<'vlocalchain'>} */
+  /** @type {ScopedBridgeManager<'vlocalchain'>} */
   let scopedManager;
   try {
     scopedManager = await makeScopedBridge(
@@ -86,7 +94,7 @@ export const setupLocalChainVat = async (
 /**
  * @param {BootstrapPowers & {
  *   consume: {
- *     localchain: import('../localchain.js').LocalChain;
+ *     localchain: LocalChain;
  *   };
  * }} powers
  * @param {object} _options

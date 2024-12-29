@@ -1,3 +1,6 @@
+/**
+ * @import {BootstrapManifest} from './lib-boot.js';
+ */
 import { E, Far } from '@endo/far';
 import { connectFaucet } from './demoIssuers.js';
 import { addRemote } from './utils.js';
@@ -39,7 +42,7 @@ export const grantRunBehaviors = async ({
 };
 harden(grantRunBehaviors);
 
-/** @type {import('./lib-boot.js').BootstrapManifest} */
+/** @type {BootstrapManifest} */
 export const SIM_CHAIN_BOOTSTRAP_PERMITS = {
   [installSimEgress.name]: {
     vatParameters: { argv: { hardcodedClientAddresses: true } },

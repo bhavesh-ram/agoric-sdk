@@ -1,3 +1,6 @@
+/**
+ * @import {LocalChainPowers} from './localchain.js';
+ */
 // @ts-check
 import { Far } from '@endo/far';
 import { makeDurableZone } from '@agoric/zone/durable.js';
@@ -18,7 +21,7 @@ export const buildRootObject = (_vatPowers, _args, baggage) => {
      * Create a local chain that allows permissionlessly making fresh local
      * chain accounts, then using them to send chain queries and transactions.
      *
-     * @param {import('./localchain.js').LocalChainPowers} powers
+     * @param {LocalChainPowers} powers
      */
     makeLocalChain(powers) {
       return makeLocalChain(powers);

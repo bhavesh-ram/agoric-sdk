@@ -1,3 +1,7 @@
+/**
+ * @import {CoreEvalProposalSDKType} from '@agoric/cosmic-proto/swingset/swingset.js';
+ * @import {BootstrapManifest} from './lib-boot.js';
+ */
 /* global globalThis */
 import { Fail } from '@endo/errors';
 import * as farExports from '@endo/far';
@@ -60,7 +64,7 @@ export const bridgeCoreEval = async allPowers => {
     async fromBridge(obj) {
       switch (obj.type) {
         case 'CORE_EVAL': {
-          /** @type {import('@agoric/cosmic-proto/swingset/swingset.js').CoreEvalProposalSDKType} */
+          /** @type {CoreEvalProposalSDKType} */
           const { evals } = obj;
           return Promise.all(
             evals.map(({ json_permits: jsonPermit, js_code: code }) =>
@@ -490,7 +494,7 @@ export const connectChainFaucet = async ({ consume: { client } }) => {
 };
 harden(connectChainFaucet);
 
-/** @type {import('./lib-boot.js').BootstrapManifest} */
+/** @type {BootstrapManifest} */
 export const SHARED_CHAIN_BOOTSTRAP_MANIFEST = {
   ...BASIC_BOOTSTRAP_PERMITS,
 
@@ -568,7 +572,7 @@ export const SHARED_CHAIN_BOOTSTRAP_MANIFEST = {
 };
 harden(SHARED_CHAIN_BOOTSTRAP_MANIFEST);
 
-/** @type {import('./lib-boot.js').BootstrapManifest} */
+/** @type {BootstrapManifest} */
 export const CHAIN_BOOTSTRAP_MANIFEST = harden({
   ...SHARED_CHAIN_BOOTSTRAP_MANIFEST,
   [connectChainFaucet.name]: {

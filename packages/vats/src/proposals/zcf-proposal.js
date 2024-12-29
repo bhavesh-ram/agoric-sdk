@@ -1,3 +1,6 @@
+/**
+ * @import {CreateVatResults} from '@agoric/swingset-vat';
+ */
 // @ts-check
 import { E } from '@endo/far';
 
@@ -5,10 +8,7 @@ import { E } from '@endo/far';
  * @param {BootstrapPowers & {
  *   consume: {
  *     vatAdminSvc: VatAdminSvc;
- *     vatStore: MapStore<
- *       string,
- *       import('@agoric/swingset-vat').CreateVatResults
- *     >;
+ *     vatStore: MapStore<string, CreateVatResults>;
  *   };
  * }} powers
  * @param {object} options

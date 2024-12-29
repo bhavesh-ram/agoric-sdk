@@ -1,4 +1,8 @@
 /**
+ * @import {Baggage} from '@agoric/vat-data';
+ * @import {CreateVatResults} from '@agoric/swingset-vat';
+ */
+/**
  * @file Source code for a bootstrap vat that runs blockchain behaviors (such as
  *   bridge vat integration) and exposes reflective methods for use in testing.
  *
@@ -64,7 +68,7 @@ manifests.MINIMAL = makeManifestForBehaviors([
  *   addBehaviors?: string[];
  *   coreProposalCodeSteps?: string[];
  * }} bootstrapParameters
- * @param {import('@agoric/vat-data').Baggage} baggage
+ * @param {Baggage} baggage
  */
 export const buildRootObject = (vatPowers, bootstrapParameters, baggage) => {
   const manualTimer = buildManualTimer();
@@ -74,7 +78,7 @@ export const buildRootObject = (vatPowers, bootstrapParameters, baggage) => {
   /** @typedef {{ root: object; incarnationNumber?: number }} VatRecord */
   /**
    * @typedef {VatRecord &
-   *   import('@agoric/swingset-vat').CreateVatResults & {
+   *   CreateVatResults & {
    *     bundleCap: unknown;
    *   }} DynamicVatRecord
    */

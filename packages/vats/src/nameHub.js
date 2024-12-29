@@ -1,3 +1,11 @@
+/**
+ * @import {Zone} from '@agoric/zone';
+ * @import {MakeAttenuator} from '@agoric/internal/src/callback.js';
+ * @import {MyAddressNameAdmin} from './types.js';
+ * @import {NameAdmin} from './types.js';
+ * @import {NameHubUpdateHandler} from './types.js';
+ * @import {NameHub} from './types.js';
+ */
 import { assert, Fail, q } from '@endo/errors';
 import { E } from '@endo/far';
 import { makePromiseKit } from '@endo/promise-kit';
@@ -41,16 +49,14 @@ export const NameHubIKit = harden({
   }),
 });
 
-/** @param {import('@agoric/zone').Zone} zone */
+/** @param {Zone} zone */
 export const prepareMixinMyAddress = zone => {
   const MixinI = M.interface('MyAddressNameAdmin', {
     ...getInterfaceGuardPayload(NameHubIKit.nameAdmin).methodGuards,
     getMyAddress: M.call().returns(M.string()),
   });
   /**
-   * @type {import('@agoric/internal/src/callback.js').MakeAttenuator<
-   *   import('./types.js').MyAddressNameAdmin
-   * >}
+   * @type {MakeAttenuator<MyAddressNameAdmin>}
    */
   const mixin = prepareGuardedAttenuator(zone, MixinI, {
     tag: 'MyAddressNameAdmin',
@@ -69,7 +75,7 @@ export const prepareMixinMyAddress = zone => {
   );
 
   /**
-   * @param {import('./types.js').NameAdmin} nameAdmin
+   * @param {NameAdmin} nameAdmin
    * @param {string} address
    */
   const mixinMyAddress = (nameAdmin, address) => {
@@ -106,8 +112,8 @@ const provideWeak = (store, key, make) => {
 };
 
 /**
- * @param {import('./types.js').NameHubUpdateHandler | undefined} updateCallback
- * @param {import('./types.js').NameHub} hub
+ * @param {NameHubUpdateHandler | undefined} updateCallback
+ * @param {NameHub} hub
  * @param {unknown} [_newValue]
  */
 const updated = (updateCallback, hub, _newValue = undefined) => {
@@ -125,7 +131,7 @@ const updated = (updateCallback, hub, _newValue = undefined) => {
  * Make two facets of a node in a name hierarchy: the nameHub is read access and
  * the nameAdmin is write access.
  *
- * @param {import('@agoric/zone').Zone} zone
+ * @param {Zone} zone
  */
 export const prepareNameHubKit = zone => {
   const init1 = () => ({
@@ -148,7 +154,7 @@ export const prepareNameHubKit = zone => {
       /** @type {MapStore<string, unknown>} */
       keyToValue: zone.detached().mapStore('nameKey'),
 
-      /** @type {MapStore<string, import('./types.js').NameAdmin>} */
+      /** @type {MapStore<string, NameAdmin>} */
       keyToAdmin: zone.detached().mapStore('nameKey'),
 
       /** @type {undefined | { write: (item: unknown) => void }} */

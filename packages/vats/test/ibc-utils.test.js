@@ -1,3 +1,6 @@
+/**
+ * @import {LocalIbcAddress} from '../tools/ibc-utils.js';
+ */
 import test from 'ava';
 import {
   decodeRemoteIbcAddress,
@@ -24,13 +27,13 @@ test('decodeRemoteIbcAddress', t => {
 });
 
 test('localAddrToPortID', t => {
-  /** @type {[import('../tools/ibc-utils.js').LocalIbcAddress, string][]} */
+  /** @type {[LocalIbcAddress, string][]} */
   const good = [['/ibc-port/my-cool-port-name', 'my-cool-port-name']];
   for (const [raw, parsed] of good) {
     t.deepEqual(localAddrToPortID(raw), parsed);
   }
 
-  /** @type {[import('../tools/ibc-utils.js').LocalIbcAddress, string][]} */
+  /** @type {[LocalIbcAddress, string][]} */
   const bad = [
     [
       '/ibc-port/',

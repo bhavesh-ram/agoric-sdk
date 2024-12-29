@@ -1,3 +1,6 @@
+/**
+ * @import {Baggage} from '@agoric/vat-data';
+ */
 import { makeDurableZone } from '@agoric/zone/durable.js';
 import { makeBootstrap } from './lib-boot.js';
 
@@ -31,7 +34,7 @@ export const MANIFEST = CHAIN_BOOTSTRAP_MANIFEST;
  * @param {{
  *   coreProposalCodeSteps?: string[];
  * }} vatParameters
- * @param {import('@agoric/vat-data').Baggage} baggage
+ * @param {Baggage} baggage
  */
 export const buildRootObject = (vatPowers, vatParameters, baggage) => {
   console.debug(`chain bootstrap starting`);

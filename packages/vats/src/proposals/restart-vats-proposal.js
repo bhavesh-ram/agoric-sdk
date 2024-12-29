@@ -1,3 +1,6 @@
+/**
+ * @import {EconomyBootstrapSpace} from '@agoric/inter-protocol/src/proposals/econ-behaviors.js';
+ */
 import { Fail } from '@endo/errors';
 import { deeplyFulfilledObject, makeTracer } from '@agoric/internal';
 import { M, mustMatch } from '@agoric/store';
@@ -26,8 +29,7 @@ const vatUpgradeStatus = {
 };
 
 /**
- * @param {BootstrapPowers &
- *   import('@agoric/inter-protocol/src/proposals/econ-behaviors.js').EconomyBootstrapSpace} space
+ * @param {BootstrapPowers & EconomyBootstrapSpace} space
  * @param {object} config
  * @param {{ skip: string[] }} config.options
  */

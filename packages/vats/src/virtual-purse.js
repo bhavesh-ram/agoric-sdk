@@ -80,7 +80,10 @@ export const makeVirtualPurseKitIKit = (
   return { VirtualPurseIKit, VirtualPurseControllerI };
 };
 
-/** @import {EOnly} from '@endo/far'; */
+/**
+ * @import {Zone} from '@agoric/zone';
+ * @import {EOnly} from '@endo/far';
+ */
 
 /**
  * @typedef {(
@@ -105,7 +108,7 @@ export const makeVirtualPurseKitIKit = (
  *   current balance iterable for a given brand.
  */
 
-/** @param {import('@agoric/zone').Zone} zone */
+/** @param {Zone} zone */
 const prepareVirtualPurseKit = zone =>
   zone.exoClassKit(
     'VirtualPurseKit',
@@ -275,7 +278,7 @@ const prepareVirtualPurseKit = zone =>
     },
   );
 
-/** @param {import('@agoric/zone').Zone} zone */
+/** @param {Zone} zone */
 export const prepareVirtualPurse = zone => {
   const makeVirtualPurseKit = prepareVirtualPurseKit(zone);
 

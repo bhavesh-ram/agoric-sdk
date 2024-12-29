@@ -1,3 +1,7 @@
+/**
+ * @import {BridgeManager} from '../types';
+ * @import {ScopedBridgeManager} from '../types';
+ */
 // @ts-check
 import { E } from '@endo/far';
 import { BridgeId as BRIDGE_ID } from '@agoric/internal';
@@ -7,8 +11,8 @@ import { makeScopedBridge } from '../bridge.js';
 /**
  * @param {BootstrapPowers & {
  *   consume: {
- *     bridgeManager: import('../types').BridgeManager;
- *     vtransferBridgeManager: import('../types').ScopedBridgeManager<'vtransfer'>;
+ *     bridgeManager: BridgeManager;
+ *     vtransferBridgeManager: ScopedBridgeManager<'vtransfer'>;
  *   };
  *   produce: {
  *     transferMiddleware: Producer<any>;

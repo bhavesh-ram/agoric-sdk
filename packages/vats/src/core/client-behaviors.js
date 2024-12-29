@@ -1,3 +1,8 @@
+/**
+ * @import {Zone} from '@agoric/base-zone';
+ * @import {BootstrapManifest} from './lib-boot.js';
+ * @import {BootstrapManifestPermit} from './lib-boot.js';
+ */
 import { E, Far } from '@endo/far';
 import { makePluginManager } from '@agoric/swingset-vat/src/vats/plugin-manager.js';
 import { observeNotifier } from '@agoric/notifier';
@@ -85,7 +90,7 @@ async function createLocalBundle(vats, devices, vatAdminSvc, vatPowers) {
  *   BootstrapSpace & {
  *     vatParameters: BootstrapVatParams;
  *     vats: SwingsetVats & SoloVats;
- *     zone: import('@agoric/base-zone').Zone;
+ *     zone: Zone;
  *   }} powers
  */
 export const startClient = async ({
@@ -167,9 +172,9 @@ export const startClient = async ({
 };
 harden(startClient);
 
-/** @type {import('./lib-boot.js').BootstrapManifest} */
+/** @type {BootstrapManifest} */
 export const CLIENT_BOOTSTRAP_MANIFEST = harden({
-  /** @type {import('./lib-boot.js').BootstrapManifestPermit} */
+  /** @type {BootstrapManifestPermit} */
   [makeVatsFromBundles.name]: {
     vats: {
       vatAdmin: 'vatAdmin',

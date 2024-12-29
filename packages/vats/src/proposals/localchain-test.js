@@ -1,3 +1,6 @@
+/**
+ * @import {LocalChain} from '../localchain.js';
+ */
 // @ts-check
 import { heapVowE as E } from '@agoric/vow/vat.js';
 import { typedJson } from '@agoric/cosmic-proto';
@@ -5,7 +8,7 @@ import { typedJson } from '@agoric/cosmic-proto';
 /**
  * @param {BootstrapPowers & {
  *   consume: {
- *     localchain: import('../localchain.js').LocalChain;
+ *     localchain: LocalChain;
  *   };
  * }} powers
  * @param {object} options

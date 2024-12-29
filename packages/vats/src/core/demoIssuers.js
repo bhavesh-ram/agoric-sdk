@@ -1,3 +1,6 @@
+/**
+ * @import {EconomyBootstrapPowers} from '@agoric/inter-protocol/src/proposals/econ-behaviors.js';
+ */
 import { Fail, q } from '@endo/errors';
 import { Nat } from '@endo/nat';
 import { E, Far } from '@endo/far';
@@ -463,7 +466,7 @@ export const poolRates = (issuerName, record, kits, central) => {
 };
 
 /**
- * @param {import('@agoric/inter-protocol/src/proposals/econ-behaviors.js').EconomyBootstrapPowers & {
- *     consume: { mints };
- *   }} powers
+ * @param {EconomyBootstrapPowers & {
+ *   consume: { mints };
+ * }} powers
  */

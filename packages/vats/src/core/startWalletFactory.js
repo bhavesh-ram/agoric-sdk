@@ -1,3 +1,8 @@
+/**
+ * @import {start} from '@agoric/smart-wallet/src/walletFactory.js';
+ * @import {CommitteeElectorateCreatorFacet} from '@agoric/governance/src/committee.js';
+ * @import {ScopedBridgeManager} from '../types.js';
+ */
 import { makeMap } from 'jessie.js';
 import { E, Far } from '@endo/far';
 import { deeplyFulfilled } from '@endo/marshal';
@@ -16,10 +21,7 @@ const trace = makeTracer('StartWF');
 
 /**
  * @param {ERef<ZoeService>} zoe
- * @param {Installation<
- *   import('@agoric/smart-wallet/src/walletFactory.js').start
- * >} inst
- *
+ * @param {Installation<start>} inst
  *
  * @typedef {Awaited<ReturnType<typeof startFactoryInstance>>} WalletFactoryStartResult
  */
@@ -62,7 +64,7 @@ const publishRevivableWalletState = async (
  * @param {BootstrapPowers &
  *   ChainStorageVatParams &
  *   PromiseSpaceOf<{
- *     economicCommitteeCreatorFacet: import('@agoric/governance/src/committee.js').CommitteeElectorateCreatorFacet;
+ *     economicCommitteeCreatorFacet: CommitteeElectorateCreatorFacet;
  *     econCharterKit: {
  *       creatorFacet: Awaited<
  *         ReturnType<
@@ -71,8 +73,8 @@ const publishRevivableWalletState = async (
  *       >['creatorFacet'];
  *       adminFacet: AdminFacet;
  *     };
- *     walletBridgeManager: import('../types.js').ScopedBridgeManager<'wallet'>;
- *     provisionWalletBridgeManager: import('../types.js').ScopedBridgeManager<'provisionWallet'>;
+ *     walletBridgeManager: ScopedBridgeManager<'wallet'>;
+ *     provisionWalletBridgeManager: ScopedBridgeManager<'provisionWallet'>;
  *   }>} powers
  * @param {{
  *   options?: {

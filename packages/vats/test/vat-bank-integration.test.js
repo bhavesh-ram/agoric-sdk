@@ -1,3 +1,6 @@
+/**
+ * @import {InitMsg} from '@agoric/internal/src/chain-utils.js';
+ */
 import { test } from '@agoric/swingset-vat/tools/prepare-test-env-ava.js';
 
 import { makeScalarMapStore } from '@agoric/vat-data';
@@ -46,7 +49,7 @@ test('mintInitialSupply, addBankAssets bootstrap actions', async t => {
   });
 
   // Genesis RUN supply: 50
-  /** @type {import('@agoric/internal/src/chain-utils.js').InitMsg} */
+  /** @type {InitMsg} */
   // @ts-expect-error missing properties
   const bootMsg = {
     type: AG_COSMOS_INIT,

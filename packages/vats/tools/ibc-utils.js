@@ -1,3 +1,7 @@
+/**
+ * @import {IBCConnectionID} from '../src/types.js';
+ * @import {IBCChannelOrdering} from '../src/types.js';
+ */
 export const REMOTE_ADDR_RE =
   /^(?<hops>\/ibc-hop\/[^/]+)*\/ibc-port\/(?<portID>[^/]+)\/(?<order>ordered|unordered)\/(?<version>[^/]+)$/s;
 harden(REMOTE_ADDR_RE);
@@ -42,7 +46,7 @@ export const decodeRemoteIbcAddress = remoteAddr => {
   if (!match.groups)
     throw Error('Unexpected error, validateRemoteIbcAddress should throw.');
 
-  /** @type {import('../src/types.js').IBCConnectionID[]} */
+  /** @type {IBCConnectionID[]} */
   const hops = [];
 
   let h = match.groups.hops;
@@ -59,7 +63,7 @@ export const decodeRemoteIbcAddress = remoteAddr => {
   }
   // Generate a circuit.
   const { portID: rPortID, version } = match.groups;
-  /** @type {import('../src/types.js').IBCChannelOrdering} */
+  /** @type {IBCChannelOrdering} */
   const order = match.groups.order === 'ordered' ? 'ORDERED' : 'UNORDERED';
   return { rPortID, hops, order, version };
 };

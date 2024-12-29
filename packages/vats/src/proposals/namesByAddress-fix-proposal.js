@@ -1,3 +1,6 @@
+/**
+ * @import {BootstrapManifest} from '../core/lib-boot';
+ */
 /** @file core eval proposal to fix namesByAddress by upgrading vat-provisioning */
 import { E } from '@endo/far';
 
@@ -39,7 +42,7 @@ export const upgradeProvisioningVat = async (powers, options) => {
 };
 
 export const getManifestForProvisioning = (_powers, { provisioningRef }) => ({
-  /** @type {import('../core/lib-boot').BootstrapManifest} */
+  /** @type {BootstrapManifest} */
   manifest: {
     [upgradeProvisioningVat.name]: {
       consume: {
