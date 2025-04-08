@@ -256,7 +256,7 @@ test('multiMap initialize with state', t => {
   ]);
 });
 
-test('multiMap remove edge cases', t => {
+test.failing('multiMap remove edge cases', t => {
   const mm = makeTimerMap();
   const handlerA = makeHandler();
   const handlerB = makeHandler();
@@ -278,19 +278,33 @@ test('multiMap remove edge cases', t => {
 
   // Add the same handler multiple times for the same time
   mm.add(8n, handlerC);
-  mm.add(8n, handlerC); // Add C again at time 8
+  mm.add(8n, handlerC); // Add C again at time 8, right after the other C
+  mm.add(8n, handlerB); // Cause a gap between 2 occurences of C
+  mm.add(8n, handlerC);
+
   t.deepEqual(mm.cloneSchedule(), [
-    { time: 7n, handlers: [{ handler: handlerC }] },
-    { time: 8n, handlers: [{ handler: handlerC }, { handler: handlerC }] },
+    {
+      time: 7n,
+      handlers: [{ handler: handlerC }],
+    },
+    {
+      time: 8n,
+      handlers: [
+        { handler: handlerC },
+        { handler: handlerC },
+        { handler: handlerB },
+        { handler: handlerC },
+      ],
+    },
   ]);
 
-  // Remove should only remove one instance of the handler for that time
-  t.deepEqual(mm.remove(handlerC), [7n, 8n]);
+  // Remove should remove all instances of the handler for that time
+  t.deepEqual(mm.remove(handlerC), [7n, 8n, 8n, 8n]);
   events = mm.removeEventsThrough(10n);
   t.is(events.length, 1);
-  // The first handlerC at time 7n was removed.
-  // One of the handlerCs at time 8n was removed.
-  t.deepEqual(events[0], { time: 8n, handlers: [{ handler: handlerC }] });
+  // The only handlerC at time 7n was removed.
+  // All handlerCs at time 8n were removed.
+  t.deepEqual(events[0], { time: 8n, handlers: [{ handler: handlerB }] });
   t.deepEqual(mm.cloneSchedule(), []);
 });
 
