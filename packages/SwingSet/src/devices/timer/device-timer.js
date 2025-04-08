@@ -160,26 +160,17 @@ function makeTimerMap(state = undefined) {
     let i = 0;
     while (i < schedule.length) {
       const { time, handlers } = schedule[i];
-      if (handlers.length === 1) {
-        if (handlers[0].handler === target) {
-          schedule.splice(i, 1);
+      // Nothing prevents a particular handler from appearing more than once
+      for (let j = handlers.length - 1; j >= 0; j -= 1) {
+        if (handlers[j].handler === target) {
+          handlers.splice(j, 1);
           droppedTimes.push(time);
-        } else {
-          i += 1;
         }
+      }
+      if (handlers.length === 0) {
+        schedule.splice(i, 1);
       } else {
-        // Nothing prevents a particular handler from appearing more than once
-        for (const handler of handlers) {
-          if (handler.handler === target && handlers.indexOf(handler) !== -1) {
-            handlers.splice(handlers.indexOf(handler), 1);
-            droppedTimes.push(time);
-          }
-        }
-        if (handlers.length === 0) {
-          schedule.splice(i, 1);
-        } else {
-          i += 1;
-        }
+        i += 1;
       }
     }
     return droppedTimes;
