@@ -2,6 +2,7 @@ import type { TestFn } from 'ava';
 import anyTest from 'ava';
 
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import pathlib from 'node:path';
 
 import tmp from 'tmp';
@@ -15,7 +16,6 @@ import {
   makeTempDirFactory,
   objectMap,
 } from '@agoric/internal';
-import { resolveToPath } from '@agoric/internal/src/module-utils.js';
 import { makeFakeStorageKit } from '@agoric/internal/src/storage-test-utils.js';
 import { provideBundleCache } from '@agoric/swingset-vat/tools/bundleTool.js';
 
@@ -26,6 +26,8 @@ import {
   type Helpers,
 } from '../tools/inquisitor.mjs';
 import { makeCosmicSwingsetTestKit } from '../tools/test-kit.js';
+
+const resolveToPath = createRequire(import.meta.url).resolve;
 
 const tmpDir = makeTempDirFactory(tmp);
 
@@ -179,10 +181,7 @@ test('vat lifecycle', async t => {
   const bundleDir = pathlib.resolve('bundles');
   const bundleCache = await provideBundleCache(bundleDir, {}, s => import(s));
   const bundle = await bundleCache.load(
-    resolveToPath(
-      '@agoric/swingset-vat/tools/vat-puppet-v2.js',
-      import.meta.url,
-    ),
+    resolveToPath('@agoric/swingset-vat/tools/vat-puppet-v2.js'),
   );
   const bundleID = `b1-${bundle.endoZipBase64Sha512}`;
   for (const label of ['first overlay', 'second overlay']) {
