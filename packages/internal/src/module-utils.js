@@ -38,6 +38,6 @@ harden(getSpecifier);
 export const resolveToPath = (specifier, baseURL) => {
   const resolved = importMetaResolve(specifier, baseURL);
   const resolvedURL = new URL(resolved);
-  return resolvedURL.pathname;
+  return fileURLToPath(resolvedURL);
 };
 harden(resolveToPath);
