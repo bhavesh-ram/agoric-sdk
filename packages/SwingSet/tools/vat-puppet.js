@@ -40,8 +40,6 @@ export const makeReflectionMethods = (vatPowers, baggage) => {
   };
 
   return {
-    getVersion: () => 1,
-
     baggageHas: key => {
       return baggage.has(key);
     },
