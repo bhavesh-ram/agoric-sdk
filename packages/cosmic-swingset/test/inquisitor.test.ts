@@ -185,8 +185,6 @@ test('vat lifecycle', async t => {
   );
   const bundleID = `b1-${bundle.endoZipBase64Sha512}`;
   for (const label of ['first overlay', 'second overlay']) {
-    await shutdown({ kernelOnly: true });
-    shutdown = undefined;
     t.log(label);
     const { swingStore: overlay } = makeSwingStoreOverlay(tmpName);
     const testKit = await makeCosmicSwingsetTestKit(receiveBridgeSend, {
@@ -201,12 +199,12 @@ test('vat lifecycle', async t => {
     t.is(
       await EV(held).data(),
       42,
-      `${label} restart must preserve vat baggage`,
+      `${label} swingset restart must preserve vat baggage`,
     );
     t.deepEqual(
       [await EV(puppet).holdInHeap(held), await EV(puppet).holdInHeap(held)],
       [3, 4],
-      `${label} restart must preserve vat heap`,
+      `${label} swingset restart must preserve vat heap`,
     );
 
     await overlay.kernelStorage.bundleStore.addBundle(bundleID, bundle);
@@ -232,5 +230,8 @@ test('vat lifecycle', async t => {
       [1, 2],
       `${label} upgraded vat must have fresh heap`,
     );
+
+    await shutdown({ kernelOnly: true });
+    shutdown = undefined;
   }
 });
