@@ -121,5 +121,9 @@ harden(makeReflectionMethods);
 
 export function buildRootObject(vatPowers, _vatParameters, baggage) {
   const methods = makeReflectionMethods(vatPowers, baggage);
-  return Far('root', methods);
+  return Far('root', {
+    ...methods,
+
+    getVersion: () => 1,
+  });
 }
