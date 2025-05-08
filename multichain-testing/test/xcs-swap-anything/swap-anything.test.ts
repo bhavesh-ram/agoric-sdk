@@ -14,6 +14,7 @@ import { execa } from 'execa';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { makeHttpClient } from '../../tools/makeHttpClient.js';
+import type { OfferStatus } from '@agoric/smart-wallet/src/offers.js';
 
 const test = anyTest as TestFn<SetupContextWithWallets>;
 
@@ -140,10 +141,10 @@ const setupXcsState = async t => {
 test.before(async t => {
   const { setupTestKeys, ...common } = await commonSetup(t);
   const { commonBuilderOpts, deleteTestKeys, startContract } = common;
-    const { waitForBlock } = makeBlockTool({
-      rpc: makeHttpClient('http://localhost:26657', fetch),
-      delay: ms => new Promise(resolve => setTimeout(resolve, ms)),
-    });
+  const { waitForBlock } = makeBlockTool({
+    rpc: makeHttpClient('http://localhost:26657', fetch),
+    delay: ms => new Promise(resolve => setTimeout(resolve, ms)),
+  });
   await deleteTestKeys(accounts).catch();
   const wallets = await setupTestKeys(accounts);
   console.log('WALLETS', wallets);
@@ -239,6 +240,87 @@ test.serial('BLD for OSMO, receiver on Agoric', async t => {
     expectedHash,
     'got expected ibc denom hash',
   );
+});
+
+test.serial('BLD for OSMO, receiver chain not registered to XCS, should throw', async t => {
+  const {
+    wallets,
+    provisionSmartWallet,
+    vstorageClient,
+    retryUntilCondition,
+    useChain,
+  } = t.context;
+
+  // Provision the Agoric smart wallet
+  const agoricAddr = wallets.agoricSender;
+  const wdUser = await provisionSmartWallet(agoricAddr, {
+    BLD: 1000n,
+    IST: 1000n,
+  });
+  t.log(`Provisioned Agoric smart wallet for ${agoricAddr}`);
+
+  const apiUrl = await useChain('agoric').getRestEndpoint();
+  const queryClient = makeQueryClient(apiUrl);
+
+  const brands = await vstorageClient.queryData('published.agoricNames.brand');
+  const bldBrand = Object.fromEntries(brands).BLD;
+  const swapInAmount = AmountMath.make(bldBrand, 125n);
+  const { balance: bldBalanceBefore } = await queryClient.queryBalance(
+    agoricAddr,
+    'ubld',
+  );
+
+  // Send swap offer
+  const makeAccountOfferId = `swap-ubld-uosmo-${Date.now()}`;
+  const updates = wdUser.offers.executeOffer({
+    id: makeAccountOfferId,
+    invitationSpec: {
+      source: 'agoricContract',
+      instancePath: [contractName],
+      callPipe: [['makeSendInvitation']],
+    },
+    offerArgs: {
+      // TODO: get the contract address dynamically
+      destAddr:
+        'osmo17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgs5yczr8',
+      receiverAddr: 'noble/noble1foo',
+      outDenom: 'uosmo',
+      slippage: { slippagePercentage: '20', windowSeconds: 10 },
+      onFailedDelivery: 'do_nothing',
+    },
+    proposal: { give: { Send: swapInAmount } },
+  });
+
+  const {
+    // @ts-expect-error types
+    value: {
+      status: { error: errorMsg },
+    },
+  } = await retryUntilCondition(
+    // Prevent test from hanging when no new values are coming from updates.next()
+    () =>
+      Promise.race([
+        updates.next(),
+        new Promise(resolve =>
+          setTimeout(async () => {
+            await updates.return();
+            resolve('Done');
+          }, 5000),
+        ),
+      ]),
+    (result: { value: { updated: string; status: OfferStatus } }) => {
+      return result.value.status.error !== undefined;
+    },
+    'Offer result did not fail as expect ed',
+  );
+
+  const { balance: bldBalanceAfter } = await queryClient.queryBalance(
+    agoricAddr,
+    'ubld',
+  );
+
+  t.deepEqual(bldBalanceBefore, bldBalanceAfter);
+  t.regex(errorMsg, /^Error: IBC Transfer failed/);
 });
 
 /**
