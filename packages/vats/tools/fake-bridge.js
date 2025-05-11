@@ -79,15 +79,18 @@ export const makeFakeBankBridge = (
             Fail`invalid address ${address}`;
           balances[address] ||= {};
           balances[address][denom] ||= 0n;
+          const current = currentBalance({ address, denom });
 
           if (type === 'VBANK_GRAB') {
-            balances[address][denom] = Nat(
-              currentBalance({ address, denom }) - BigInt(amount),
-            );
+            // Check if there are insufficient funds
+            if (current < BigInt(amount)) {
+              throw Error(
+                `cannot grab ${amount}${denom} coins: spendable balance ${current}${denom} is smaller than ${amount}${denom}: insufficient funds`,
+              );
+            }
+            balances[address][denom] = Nat(current - BigInt(amount));
           } else {
-            balances[address][denom] = Nat(
-              currentBalance({ address, denom }) + BigInt(amount),
-            );
+            balances[address][denom] = Nat(current + BigInt(amount));
           }
 
           lastNonce += 1n;
