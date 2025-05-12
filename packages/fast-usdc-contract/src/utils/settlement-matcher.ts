@@ -117,7 +117,7 @@ export const makeSettlementMatcher = (
     // 2. greedy combination
     const combo = greedyMatch(list, amount);
     if (combo.length) {
-      if (list.length - combo.length > 1) {
+      if (list.length - combo.length) {
         const matchedSet = new Set(combo); // identity compare is safe here
         const remaining = list.filter(tx => !matchedSet.has(tx));
         pendingSettleTxs.set(nfa, harden(remaining));

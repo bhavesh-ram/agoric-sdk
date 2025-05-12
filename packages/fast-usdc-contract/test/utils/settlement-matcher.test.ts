@@ -55,8 +55,8 @@ test.beforeEach(t => {
 const exact = test.macro({
   title: (_title = '', want: bigint, pending: bigint[]) =>
     `exact match ${String(want)} in [${pending.join(',')}]`,
-  exec: (t, want: bigint, pending: bigint[]) => {
-    const { match } = t.context;
+  exec: (t, want: bigint, pending: bigint[], expectRemaining: bigint[]) => {
+    const { match, store } = t.context;
     for (const a of pending) {
       match.addPendingSettleTx(makePendingTx(a));
     }
@@ -66,12 +66,23 @@ const exact = test.macro({
       got.map(tx => tx.tx.amount),
       [want],
     );
+
+    if (expectRemaining.length) {
+      t.deepEqual(
+        store.get(ADDRESS).map(tx => tx.tx.amount),
+        expectRemaining,
+        'remaining queue',
+      );
+    } else {
+      t.false(store.has(ADDRESS), 'queue cleared');
+    }
   },
 });
 
-test(exact, 200n, [100n, 200n]);
-test(exact, 100n, [100n, 200n]);
-test(exact, 200n, [100n, 200n, 200n]);
+test(exact, 200n, [100n, 200n], [100n]);
+test(exact, 100n, [100n, 200n], [200n]);
+test(exact, 200n, [100n, 200n, 200n], [200n, 100n]);
+test(exact, 200n, [200n], []);
 
 const greedy = test.macro({
   title: (_ = '', target: bigint, pending: bigint[], expectMatch: bigint[]) =>
