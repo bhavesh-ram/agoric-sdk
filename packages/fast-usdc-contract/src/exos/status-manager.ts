@@ -32,7 +32,7 @@ import { chainOfAccount } from '@agoric/orchestration/src/utils/address.js';
 import type { AccountId, CaipChainId } from '@agoric/orchestration';
 import { ForwardFailedTxShape, type ForwardFailedTx } from '../typeGuards.ts';
 import { type RouteHealth } from '../utils/route-health.ts';
-import { makeSettlementMatching } from '../utils/settlement-matching.ts';
+import { makeSettlementMatcher } from '../utils/settlement-matcher.ts';
 
 interface StatusManagerPowers {
   log?: LogFn;
@@ -73,7 +73,7 @@ export const prepareStatusManager = (
   );
 
   const { addPendingSettleTx, matchAndDequeueSettlement } =
-    makeSettlementMatching(pendingSettleTxs);
+    makeSettlementMatcher(pendingSettleTxs);
 
   /**
    * Migrate `pendingSettleTxs` to be keyed by NFA instead of the tuple of NFA
