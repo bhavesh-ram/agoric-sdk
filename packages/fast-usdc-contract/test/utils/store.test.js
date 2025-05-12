@@ -150,14 +150,15 @@ test('remove with excessive count should return false', t => {
 
 test('appendToSortedStoredArray creates sorted array (default desc)', t => {
   const store = makeScalarMapStore();
+  const sortDesc = (a, b) => b - a;
 
-  appendToSortedStoredArray(store, 'numbers', 3);
+  appendToSortedStoredArray(store, 'numbers', 3, sortDesc);
   t.deepEqual(store.get('numbers'), [3]);
 
   // Insert out of order; should remain descending
-  appendToSortedStoredArray(store, 'numbers', 5); // [5, 3]
-  appendToSortedStoredArray(store, 'numbers', 2); // [5, 3, 2]
-  appendToSortedStoredArray(store, 'numbers', 3); // [5, 3, 3, 2]
+  appendToSortedStoredArray(store, 'numbers', 5, sortDesc); // [5, 3]
+  appendToSortedStoredArray(store, 'numbers', 2, sortDesc); // [5, 3, 2]
+  appendToSortedStoredArray(store, 'numbers', 3, sortDesc); // [5, 3, 3, 2]
   t.deepEqual(store.get('numbers'), [5, 3, 3, 2]);
 });
 

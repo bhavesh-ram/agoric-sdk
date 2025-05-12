@@ -128,7 +128,7 @@ export const appendToSortedStoredArray = <K, V>(
   mapStore: MapStore<K, V[]>,
   key: K,
   item: V,
-  compare: (a: V, b: V) => number = defaultCompareDesc as any,
+  compare: (a: V, b: V) => number,
 ): void => {
   if (!mapStore.has(key)) {
     mapStore.init(key, harden([item]));
@@ -148,16 +148,3 @@ export const appendToSortedStoredArray = <K, V>(
   mapStore.set(key, harden(next));
 };
 harden(appendToSortedStoredArray);
-
-/**
- * Default ascending comparator for numbers, bigints, and strings.
- */
-const defaultCompareDesc = <T extends bigint | number | string>(
-  a: T,
-  b: T,
-): number => {
-  if (a < b) return 1;
-  else if (a > b) return -1;
-  else return 0;
-};
-harden(defaultCompareDesc);
