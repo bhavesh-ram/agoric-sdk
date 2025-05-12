@@ -10,12 +10,12 @@ import type {
 } from '@agoric/fast-usdc/src/types.ts';
 import { M } from '@endo/patterns';
 import { PendingTxShape } from '@agoric/fast-usdc/src/type-guards.js';
-import { makeSettlementMatching } from '../../src/utils/settlement-matching.ts';
+import { makeSettlementMatcher } from '../../src/utils/settlement-matcher.ts';
 import { MockCctpTxEvidences } from '../fixtures.ts';
 
 const test = anyTest as TestFn<{
   store: MapStore<NobleAddress, PendingTx[]>;
-  match: ReturnType<typeof makeSettlementMatching>;
+  match: ReturnType<typeof makeSettlementMatcher>;
 }>;
 
 const ADDRESS = 'noble1address' as const;
@@ -48,7 +48,7 @@ test.beforeEach(t => {
   );
   t.context = {
     store: pendingSettleTxs,
-    match: makeSettlementMatching(pendingSettleTxs),
+    match: makeSettlementMatcher(pendingSettleTxs),
   };
 });
 
@@ -135,16 +135,14 @@ test('empty queue returns []', t => {
   t.deepEqual(match.matchAndDequeueSettlement(ADDRESS, 1n), []);
 });
 
-test('greedy depth cap returns [] and leaves queue', t => {
+test('exception thrown when greedy depth cap reached', t => {
   const { match, store } = t.context;
   for (const a of Array.from({ length: 30 }, () => 1n)) {
     match.addPendingSettleTx(makePendingTx(a));
   }
-  t.deepEqual(
-    match.matchAndDequeueSettlement(ADDRESS, 26n),
-    [],
-    'depth-capped',
-  );
+  t.throws(() => match.matchAndDequeueSettlement(ADDRESS, 26n), {
+    message: 'MAX_MATCH_DEPTH: 25 exceeded for noble1address',
+  });
   t.true(store.has(ADDRESS), 'queue unchanged when cap exceeded');
 });
 

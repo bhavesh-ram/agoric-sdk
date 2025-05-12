@@ -26,11 +26,8 @@ import { appendToSortedStoredArray } from './store.ts';
 const MAX_MATCH_DEPTH = 25;
 
 /** bigint‑safe descending comparator (largest first) */
-const comparePendingTxDesc = (a: PendingTx, b: PendingTx): number => {
-  if (a.tx.amount < b.tx.amount) return 1;
-  if (a.tx.amount > b.tx.amount) return -1;
-  return 0;
-};
+const comparePendingTxDesc = (a: PendingTx, b: PendingTx): number =>
+  Number(b.tx.amount - a.tx.amount);
 
 harden(comparePendingTxDesc);
 
@@ -51,7 +48,10 @@ const greedyMatch = (
   const dfs = (index: number, sum: bigint): boolean => {
     if (sum === target) return true;
     if (sum > target) return false; // unreachable with current continue‑on‑overshoot logic
-    if (path.length >= MAX_MATCH_DEPTH) return false;
+    if (path.length >= MAX_MATCH_DEPTH)
+      throw new Error(
+        `MAX_MATCH_DEPTH: ${MAX_MATCH_DEPTH} exceeded for ${pending[0].tx.forwardingAddress}`,
+      );
 
     if (index >= pending.length) return false;
 
@@ -77,7 +77,7 @@ const greedyMatch = (
 
 harden(greedyMatch);
 
-export const makeSettlementMatching = (
+export const makeSettlementMatcher = (
   pendingSettleTxs: MapStore<NobleAddress, PendingTx[]>,
 ) => {
   /** add to per‑address queue, preserving descending sort */
@@ -105,24 +105,30 @@ export const makeSettlementMatching = (
     const ix = list.findIndex(tx => tx.tx.amount === amount);
     if (ix >= 0) {
       const match = list[ix];
-      const remaining = [...list.slice(0, ix), ...list.slice(ix + 1)];
-      remaining.length
-        ? pendingSettleTxs.set(nfa, harden(remaining))
-        : pendingSettleTxs.delete(nfa);
+      if (list.length > 1) {
+        const remaining = [...list.slice(0, ix), ...list.slice(ix + 1)];
+        pendingSettleTxs.set(nfa, harden(remaining));
+      } else {
+        pendingSettleTxs.delete(nfa);
+      }
       return [match];
     }
 
     // 2. greedy combination
     const combo = greedyMatch(list, amount);
     if (combo.length) {
-      const matchedSet = new Set(combo); // identity compare is safe here
-      const remaining = list.filter(tx => !matchedSet.has(tx));
-      remaining.length
-        ? pendingSettleTxs.set(nfa, harden(remaining))
-        : pendingSettleTxs.delete(nfa);
+      if (list.length - combo.length > 1) {
+        const matchedSet = new Set(combo); // identity compare is safe here
+        const remaining = list.filter(tx => !matchedSet.has(tx));
+        pendingSettleTxs.set(nfa, harden(remaining));
+      } else {
+        pendingSettleTxs.delete(nfa);
+      }
     }
     return combo;
   };
 
   return harden({ addPendingSettleTx, matchAndDequeueSettlement });
 };
+
+export type SettlementMatcher = ReturnType<typeof makeSettlementMatcher>;
