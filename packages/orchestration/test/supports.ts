@@ -52,6 +52,8 @@ export const commonSetup = async (t: ExecutionContext<any>) => {
 
   const bld = withAmountUtils(makeIssuerKit('BLD'));
   const ist = withAmountUtils(makeIssuerKit('IST'));
+  const flix = withAmountUtils(makeIssuerKit('FLIX'));
+  const osmo = withAmountUtils(makeIssuerKit('OSMO'));
   const bankBridgeMessages = [] as any[];
   const { bankManager, pourPayment } = await makeFakeBankManagerKit({
     onToBridge: obj => bankBridgeMessages.push(obj),
@@ -63,10 +65,24 @@ export const commonSetup = async (t: ExecutionContext<any>) => {
     'Inter Stable Token',
     ist.issuerKit,
   );
+  await E(bankManager).addAsset(
+    'uflix',
+    'FLIX',
+    'Flix Token',
+    flix.issuerKit,
+  );
+  await E(bankManager).addAsset(
+    'uosmo',
+    'OSMO',
+    'Osmo Token',
+    osmo.issuerKit,
+  );
   // These mints no longer stay in sync with bankManager.
   // Use pourPayment() for IST.
   const { mint: _b, ...bldSansMint } = bld;
   const { mint: _i, ...istSansMint } = ist;
+  const { mint: _f, ...flixSansMint } = flix;
+  const { mint: _o, ...osmoSansMint } = osmo;
   // XXX real bankManager does this. fake should too?
   // TODO https://github.com/Agoric/agoric-sdk/issues/9966
   await makeWellKnownSpaces(agoricNamesAdmin, t.log, ['vbankAsset']);
@@ -89,6 +105,28 @@ export const commonSetup = async (t: ExecutionContext<any>) => {
       issuerName: 'BLD',
       denom: 'ubld',
       proposedName: 'BLD',
+      displayInfo: { IOU: true },
+    }),
+  );
+  await E(E(agoricNamesAdmin).lookupAdmin('vbankAsset')).update(
+    'uflix',
+    /** @type {AssetInfo} */ harden({
+      brand: flix.brand,
+      issuer: flix.issuer,
+      issuerName: 'FLIX',
+      denom: 'uflix',
+      proposedName: 'FLIX',
+      displayInfo: { IOU: true },
+    }),
+  );
+  await E(E(agoricNamesAdmin).lookupAdmin('vbankAsset')).update(
+    'uosmo',
+    /** @type {AssetInfo} */ harden({
+      brand: osmo.brand,
+      issuer: osmo.issuer,
+      issuerName: 'OSMO',
+      denom: 'uosmo',
+      proposedName: 'OSMO',
       displayInfo: { IOU: true },
     }),
   );
@@ -264,6 +302,8 @@ export const commonSetup = async (t: ExecutionContext<any>) => {
     brands: {
       bld: bldSansMint,
       ist: istSansMint,
+      flix: flixSansMint,
+      osmo: osmoSansMint,
     },
     mocks: {
       ibcBridge,

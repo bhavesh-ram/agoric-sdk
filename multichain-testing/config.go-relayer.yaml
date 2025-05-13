@@ -87,6 +87,31 @@ chains:
     resources:
       cpu: 1
       memory: 1Gi
+  - id: omniflixlocal
+    name: omniflix
+    image: omniflixhubd:v5.2.2
+    numValidators: 1
+    genesis:
+      app_state:
+        staking:
+          params:
+            unbonding_time: '2m'
+        interchain_accounts:
+          host_genesis_state:
+            params:
+              host_enabled: true
+              allow_messages: ['*']
+    faucet:
+      enabled: true
+      type: starship
+    ports:
+      rest: 1312
+      rpc: 26653
+      grpc: 9096
+      faucet: 8089
+    resources:
+      cpu: 1
+      memory: 1Gi
 
 relayers:
   - name: osmosis-cosmoshub
@@ -107,7 +132,24 @@ relayers:
     chains:
       - agoriclocal
       - cosmoshublocal
-
+  - name: omniflixhub-cosmoshub
+    type: go-relayer
+    replicas: 1
+    chains:
+      - omniflixhublocal
+      - cosmoshublocal
+  - name: agoric-omniflixhub
+    type: go-relayer
+    replicas: 1
+    chains:
+      - agoriclocal
+      - omniflixhublocal
+  - name: osmosis-omniflixhub
+    type: go-relayer
+    replicas: 1
+    chains:
+      - osmosislocal
+      - omniflixhublocal
 explorer:
   enabled: false
 

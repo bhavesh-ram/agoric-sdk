@@ -467,7 +467,7 @@ test('getBalance and getBalances', async t => {
         }),
       ]);
     const makeBalanceResp = (
-      balance: Coin = { denom: 'usomo', amount: '10' },
+      balance: Coin = { denom: 'uosmo', amount: '10' },
     ) =>
       buildQueryResponseString(QueryBalanceResponse, {
         balance,

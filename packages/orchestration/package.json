@@ -19,7 +19,8 @@
     "lint": "run-s --continue-on-error lint:*",
     "lint:types": "tsc",
     "lint:eslint": "eslint .",
-    "lint-fix": "yarn lint:eslint --fix"
+    "lint-fix": "yarn lint:eslint --fix",
+    "test:omniflix": "ava test/examples/omniflix-tip.test.ts"
   },
   "repository": {
     "type": "git",
@@ -34,7 +35,7 @@
   "homepage": "https://github.com/Agoric/agoric-sdk#readme",
   "dependencies": {
     "@agoric/async-flow": "^0.1.0",
-    "@agoric/cosmic-proto": "^0.4.0",
+    "@agoric/cosmic-proto": "^0.5.0-u20.0",
     "@agoric/ertp": "^0.16.2",
     "@agoric/internal": "^0.3.2",
     "@agoric/network": "^0.1.0",
