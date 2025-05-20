@@ -204,7 +204,7 @@ export const getPoolRoute = async () => {
   const routeObj = {
     get_route: {
       input_denom:
-        'ibc/E7827844CB818EE9C4DB2C159F1543FF62B26213B44CE8029D5CEFE52F0EE596',
+        'ibc/42225F147137DDEB5FEF0F1D0A92F2AD57557AFA2C4D6F30B21E0D983001C002',
       output_denom: 'uosmo',
     },
   };

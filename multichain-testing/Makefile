@@ -1,7 +1,7 @@
 # see https://github.com/cosmology-tech/starship/blob/0e18757b8393357fc66426c5ee23da4ccf760e74/examples/getting-started/Makefile
 
 NAME = agoric-multichain-testing
-FILE = config.yaml
+FILE ?= config.yaml
 
 HELM_REPO = starship
 HELM_CHART = devnet

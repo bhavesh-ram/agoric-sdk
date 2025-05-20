@@ -238,7 +238,7 @@ __metadata:
   resolution: "@agoric/orchestration@portal:../packages/orchestration::locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@agoric/async-flow": "npm:^0.1.0"
-    "@agoric/cosmic-proto": "npm:^0.4.0"
+    "@agoric/cosmic-proto": "npm:^0.5.0-u20.0"
     "@agoric/ertp": "npm:^0.16.2"
     "@agoric/internal": "npm:^0.3.2"
     "@agoric/network": "npm:^0.1.0"
@@ -477,6 +477,7 @@ __metadata:
     "@agoric/time": "npm:^0.3.2"
     "@agoric/vat-data": "npm:^0.5.2"
     "@agoric/vow": "npm:^0.1.0"
+    "@agoric/zoe": "npm:^0.27.0-u20.0"
     "@agoric/zone": "npm:^0.2.2"
     "@endo/bundle-source": "npm:^4.0.0"
     "@endo/captp": "npm:^4.4.5"

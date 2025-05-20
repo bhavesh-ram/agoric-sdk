@@ -42,6 +42,21 @@ POOL_CONFIG_DEST="/opt/$POOL_CONFIG_FILE"
 MAX_RETRIES="5"
 DELAY="5"
 
+# print values of all variables
+echo "AGORIC_WALLET: $AGORIC_WALLET"
+echo "AGORIC_ADDRESS: $AGORIC_ADDRESS"
+echo "OSMOSIS_WALLET: $OSMOSIS_WALLET"
+echo "OSMOSIS_ADDRESS: $OSMOSIS_ADDRESS"
+echo "SWAPROUTER_OWNER_WALLET: $SWAPROUTER_OWNER_WALLET"
+echo "SWAPROUTER_OWNER_ADDRESS: $SWAPROUTER_OWNER_ADDRESS"
+echo "AGORIC_OSMOSIS_CHANNEL: $AGORIC_OSMOSIS_CHANNEL"
+echo "OSMOSIS_AGORIC_CHANNEL: $OSMOSIS_AGORIC_CHANNEL"
+echo "AGORIC_OSMOSIS_PORT: $AGORIC_OSMOSIS_PORT"
+echo "AGORIC_TOKEN_DENOM: $AGORIC_TOKEN_DENOM"
+echo "AGORIC_TOKEN_TRANSFER_AMOUNT: $AGORIC_TOKEN_TRANSFER_AMOUNT"
+echo "IBC_DENOM: $IBC_DENOM"
+
+
 echo "Generating pool configuration file ..."
 jq -n \
   --arg weight1 "${TOKEN_IN_WEIGHT}${TOKEN_IN_DENOM}" \
@@ -70,12 +85,25 @@ fi
 
 echo "Starting IBC transfer from Agoric to Osmosis ..."
 agoric-exec tx ibc-transfer transfer $AGORIC_OSMOSIS_PORT $AGORIC_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${AGORIC_TOKEN_TRANSFER_AMOUNT}${AGORIC_TOKEN_DENOM} --from $AGORIC_ADDRESS --yes
+# print the above command
+echo "Command: agoric-exec tx ibc-transfer transfer $AGORIC_OSMOSIS_PORT $AGORIC_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${AGORIC_TOKEN_TRANSFER_AMOUNT}${AGORIC_TOKEN_DENOM} --from $AGORIC_ADDRESS --yes"
+
+echo "Wait for a moment after IBC transfer..."
+sleep 10
 
 echo "Verifying if Osmosis wallet has the funds ..."
+
+# send an IBC transfer to Osmosis from Agoric
+agoric-exec tx ibc-transfer transfer $AGORIC_OSMOSIS_PORT $AGORIC_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${AGORIC_TOKEN_TRANSFER_AMOUNT}${AGORIC_TOKEN_DENOM} --from $AGORIC_ADDRESS --yes
+
 for ((i = 1; i <= MAX_RETRIES; i++)); do
   echo "Attempt $i of $MAX_RETRIES..."
 
   osmosis_balances_json=$(osmosis-exec query bank balances $OSMOSIS_ADDRESS -o json)
+
+  # print osmosis address with balances
+  echo "Osmosis address: $OSMOSIS_ADDRESS"
+  echo "Osmosis balances: $osmosis_balances_json"
 
   balance_1=$(jq -r --arg denom "$TOKEN_IN_DENOM" '.balances[] | select(.denom == $denom) | .amount' <<< "$osmosis_balances_json")
   balance_2=$(jq -r --arg denom "$TOKEN_OUT_DENOM" '.balances[] | select(.denom == $denom) | .amount' <<< "$osmosis_balances_json")
