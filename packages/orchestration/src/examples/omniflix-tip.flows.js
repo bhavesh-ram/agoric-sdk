@@ -1,6 +1,5 @@
 import { NonNullish, makeTracer } from '@agoric/internal';
 import { Fail, makeError, q } from '@endo/errors';
-import { E } from '@endo/eventual-send';
 import { M, mustMatch } from '@endo/patterns';
 
 const trace = makeTracer('SwapAnything.Flow');
@@ -108,7 +107,7 @@ export const tipFlow = async (
   const { give } = seat.getProposal();
   const [[_kw, amt]] = entries(give);
   trace(`sending {${amt.value}} from osmosis to ${receiverAddr}`);
-  const denom = await denomForBrand(orch, amt.brand);
+  const denom = await denomForBrand(orch, amt.brand); 
 
   /**
    * @type {any} XXX methods returning vows

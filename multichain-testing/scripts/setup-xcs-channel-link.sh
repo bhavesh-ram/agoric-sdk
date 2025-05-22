@@ -5,7 +5,7 @@ shopt -s expand_aliases
 
 alias osmosis-exec="kubectl exec -i osmosislocal-genesis-0 -c validator -- osmosisd"
 alias osmosis-cli="kubectl exec -i osmosislocal-genesis-0 -c validator -- /bin/bash -c"
-alias hermes-exec="kubectl exec -i hermes-agoric-osmosis-0 -c relayer -- hermes"
+alias hermes-exec="kubectl exec -i hermes-osmosis-omniflixhub-0 -c relayer -- hermes"
 
 REGISTRY_ADDRESS=$(osmosis-cli "jq -r '.crosschain_registry.address' /contract-info.json")
 

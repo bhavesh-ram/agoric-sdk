@@ -86,7 +86,7 @@ export const setupXcsContracts = async t => {
 
 export const createOsmosisPool = async t => {
   console.log('Creating Osmosis Pool ...');
-  const tokenInDenom = 'ubld';
+  const tokenInDenom = 'uflix';
   const tokenInAmount = '250000';
   const tokenInWeight = '1';
   const tokenOutDenom = 'uosmo';
@@ -203,9 +203,9 @@ export const getPoolRoute = async () => {
 
   const routeObj = {
     get_route: {
-      input_denom:
-        'ibc/42225F147137DDEB5FEF0F1D0A92F2AD57557AFA2C4D6F30B21E0D983001C002',
-      output_denom: 'uosmo',
+      input_denom: 'ibc/49C630713B2AB60653F76C0C58D43C2A64956803B4D422CACB6DD4AD016ED846',
+      output_denom:
+        'uosmo',
     },
   };
   const routeJson = `'${JSON.stringify(routeObj)}'`;

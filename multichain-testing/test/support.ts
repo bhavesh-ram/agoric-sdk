@@ -43,7 +43,7 @@ export const chainConfig: Record<string, { expectedAddressPrefix: string }> = {
 } as const;
 
 const makeKeyring = async (
-  e2eTools: Pick<E2ETools, 'addKey' | 'deleteKey'>,
+  e2eTools: Pick<E2ETools, 'addKey' | 'deleteKey' | 'addOmniflixHubKey' | 'deleteOmniflixHubKey'>,
 ) => {
   let _keys = ['user1'];
   const setupTestKeys = async (
@@ -62,6 +62,25 @@ const makeKeyring = async (
     }
     return wallets;
   };
+  const setupOmniflixHubTestKeys = async (
+    keys = ['user1'],
+    mnemonics?: (string | undefined)[],
+  ) => {
+    _keys = keys;
+    const wallets: Record<string, string> = {};
+    for (const i in keys) {
+      console.log('ADDING OMNIFLIX HUB KEY', keys[i], mnemonics?.[i]);
+      const mnemonic = mnemonics?.[i] || generateMnemonic();
+      console.log('MNEMONIC', mnemonic);
+      const res = await e2eTools.addOmniflixHubKey(
+        keys[i],
+        mnemonic,
+      );
+      const { address } = JSON.parse(res);
+      wallets[keys[i]] = address;
+    }
+    return wallets;
+  }
 
   const deleteTestKeys = (keys: string[] = []) =>
     Promise.allSettled(
@@ -70,7 +89,14 @@ const makeKeyring = async (
       ),
     ).catch();
 
-  return { setupTestKeys, deleteTestKeys };
+  const deleteOmniflixHubTestKeys = (keys: string[] = []) =>
+    Promise.allSettled(
+      Array.from(new Set([...keys, ..._keys])).map(key =>
+        e2eTools.deleteOmniflixHubKey(key).catch(),
+      ),
+    ).catch();
+
+  return { setupTestKeys, deleteTestKeys, setupOmniflixHubTestKeys, deleteOmniflixHubTestKeys };
 };
 
 export const commonSetup = async (
@@ -194,6 +220,7 @@ export const commonSetup = async (
 };
 
 export type SetupContext = Awaited<ReturnType<typeof commonSetup>>;
-export type SetupContextWithWallets = Omit<SetupContext, 'setupTestKeys'> & {
+export type SetupContextWithWallets = Omit<SetupContext, 'setupTestKeys' | 'setupOmniflixHubTestKeys'> & {
   wallets: Record<string, string>;
+  omniflixHubWallets: Record<string, string>;
 };

@@ -6,6 +6,7 @@ import { E, Far } from '@endo/far';
 import { Nat } from '@endo/nat';
 import { makePromiseKit } from '@endo/promise-kit';
 import { flags, makeAgd, makeCopyFiles } from './agd-lib.js';
+import { makeOmniflixHubd } from './omniflixhub-lib.js';
 import { makeHttpClient, makeAPI } from './makeHttpClient.js';
 import { dedup, makeQueryKit, poll } from './queryKit.js';
 import { makeVStorage } from './batchQuery.js';
@@ -520,6 +521,7 @@ export const makeE2ETools = async (
   },
 ) => {
   const agd = makeAgd({ execFileSync }).withOpts({ keyringBackend: 'test' });
+  const omniflixhubd = makeOmniflixHubd({ execFileSync }).withOpts({ keyringBackend: 'test' });
   const rpc = makeHttpClient(rpcAddress, fetch);
   const lcd = makeAPI(apiAddress, { fetch });
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -638,6 +640,18 @@ export const makeE2ETools = async (
         // @ts-expect-error XXX
         Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic,
       ),
+    /**
+     * @param {string} name
+     * @param {EnglishMnemonic | string} mnemonic
+     */
+    addOmniflixHubKey: async (name, mnemonic) =>
+      omniflixhubd.keys.add(
+        name,
+        // @ts-expect-error XXX
+        Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic,
+      ),
+    /** @param {string} name */
+    deleteOmniflixHubKey: async name => omniflixhubd.keys.delete(name),
     /** @param {string} name */
     deleteKey: async name => agd.keys.delete(name),
     copyFiles,
