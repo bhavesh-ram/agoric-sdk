@@ -5,7 +5,17 @@ shopt -s expand_aliases
 
 alias osmosis-exec="kubectl exec -i osmosislocal-genesis-0 -c validator -- osmosisd"
 alias osmosis-cli="kubectl exec -i osmosislocal-genesis-0 -c validator -- /bin/bash -c"
-alias hermes-exec="kubectl exec -i hermes-osmosis-omniflixhub-0 -c relayer -- hermes"
+
+if [ "$1" == "agoric" ]; then
+  alias hermes-exec="kubectl exec -i hermes-agoric-osmosis-0 -c relayer -- hermes"
+elif [ "$1" == "omniflixhub" ]; then
+  alias hermes-exec="kubectl exec -i hermes-osmosis-omniflixhub-0 -c relayer -- hermes"
+elif [ "$1" == "cosmoshub" ]; then
+  alias hermes-exec="kubectl exec -i hermes-osmosis-cosmoshub-0 -c relayer -- hermes"
+else
+  echo "Invalid chain. Use 'agoric', 'omniflixhub', or 'cosmoshub'"
+  exit 1
+fi
 
 REGISTRY_ADDRESS=$(osmosis-cli "jq -r '.crosschain_registry.address' /contract-info.json")
 
@@ -13,7 +23,7 @@ CHAIN_A="$1"
 CHAIN_B="$2"
 
 CHANNEL_INFO=$(hermes-exec --json query channels --show-counterparty --chain "${CHAIN_A}local" \
-  | jq --arg CHAIN_B_LOCAL "${CHAIN_B}local" '.result[] | select(.chain_id_b == $CHAIN_B_LOCAL)')
+  | jq --arg CHAIN_B_LOCAL "${CHAIN_B}local" '.result[] | select(.chain_id_b == "'${CHAIN_B}local'")')
 
 CHAIN_A_CHAIN_B_CHANNEL=$(echo "$CHANNEL_INFO" | jq -r '.channel_a')
 CHAIN_B_CHAIN_A_CHANNEL=$(echo "$CHANNEL_INFO" | jq -r '.channel_b')

@@ -33,6 +33,11 @@ MODIFY_BECH32_PREFIXES=$(jq -n \
           operation: "set",
           chain_name: "cosmoshub",
           prefix: "cosmos"
+        },
+        {
+          operation: "set",
+          chain_name: "omniflixhub",
+          prefix: "omniflix"
         }
       ]
     }

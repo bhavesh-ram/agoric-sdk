@@ -1,4 +1,5 @@
 import anyTest from '@endo/ses-ava/prepare-endo.js';
+import crypto from 'crypto';
 import type { TestFn } from 'ava';
 import { AmountMath } from '@agoric/ertp';
 import { encodeAddressHook } from '@agoric/cosmic-proto/address-hooks.js';
@@ -16,48 +17,74 @@ import {
   fundRemote,
   setupXcsContracts,
   createOsmosisPool,
+  createOsmosisPoolFlix,
   setupXcsChannelLink,
   setupXcsPrefix,
   getXcsContractsAddress,
   getXcsState,
   getPoolRoute,
   getPool,
+  setupRoutes,
 } from './helpers.js';
 
 const test = anyTest as TestFn<SetupContextWithWallets>;
 
 const accounts = ['agoricSender', 'agoricReceiver'];
-const omniflixHubAccounts = ['omniflixReceiver1', 'omniflixReceiver2'];
+const omniflixHubAccounts = ['omniflixReceiver', 'omniflixReceiver3'];
 
 const contractName = 'omniflixTip';
 const contractBuilder =
   '../packages/builders/scripts/testing/init-omniflix-tip.js';
 
 test.before(async t => {
-  const { setupTestKeys, setupOmniflixHubTestKeys, ...common } = await commonSetup(t);
-  const { commonBuilderOpts, deleteTestKeys, startContract } = common;
+  const { setupTestKeys, setupOmniflixHubTestKeys, useChain, ...common } = await commonSetup(t);
+  const { commonBuilderOpts, deleteTestKeys, deleteOmniflixHubTestKeys, startContract } = common;
   const { waitForBlock } = makeBlockTool({
     rpc: makeHttpClient('http://localhost:26657', fetch),
     delay: ms => new Promise(resolve => setTimeout(resolve, ms)),
   });
   await deleteTestKeys(accounts).catch();
+  await deleteOmniflixHubTestKeys(omniflixHubAccounts).catch();
   const wallets = await setupTestKeys(accounts);
-  // const omniflixHubWallets = await setupOmniflixHubTestKeys(omniflixHubAccounts);
+  const omniflixHubWallets = await setupOmniflixHubTestKeys(omniflixHubAccounts);
   console.log('WALLETS', wallets);
-  // console.log('OMNIFLIX HUB WALLETS', omniflixHubWallets);
+  console.log('OMNIFLIX HUB WALLETS', omniflixHubWallets);
 
-  // await startContract(contractName, contractBuilder, commonBuilderOpts);
+  await startContract(contractName, contractBuilder, commonBuilderOpts);
 
-  // await setupXcsContracts(t);
-  // await createOsmosisPool(t);
+  await setupXcsContracts(t);
+  await createOsmosisPool(t);
+  await createOsmosisPoolFlix(t);
+  await setupXcsChannelLink(t, 'agoric', 'osmosis');
+  // await setupXcsChannelLink(t, 'cosmoshub', 'osmosis');
   await setupXcsChannelLink(t, 'omniflixhub', 'osmosis');
   await setupXcsPrefix(t);
 
+  const agoricChainId = useChain('agoric').chain.chain_id;
+  const {
+    transferChannel: { channelId: agoricChannelId },
+  } = starshipChainInfo.osmosis.connections[agoricChainId];
+  t.log('Channel ID:', agoricChannelId);
+
+  const omniflixChainId = useChain('omniflixhub').chain.chain_id;
+  const {
+    transferChannel: { channelId: omniflixChannelId },
+  } = starshipChainInfo.osmosis.connections[omniflixChainId];
+  t.log('Channel ID:', omniflixChannelId);
+
+  const agoricPath = `transfer/${agoricChannelId}/ubld`;
+  const omniflixPath = `transfer/${omniflixChannelId}/uflix`;
+
+  const agoricDenomHash = crypto.createHash('sha256').update(agoricPath).digest('hex').toUpperCase();
+  const omniflixDenomHash = crypto.createHash('sha256').update(omniflixPath).digest('hex').toUpperCase();
+
+  // await setupRoutes(t, agoricDenomHash, omniflixDenomHash);
+
   // @ts-expect-error type
-  // t.context = { ...common, wallets, omniflixHubWallets, waitForBlock };
+  t.context = { ...common, wallets, omniflixHubWallets, waitForBlock, useChain };
 });
 
-test.only('test osmosis xcs state', async t => {
+test.skip('test osmosis xcs state', async t => {
   const { useChain } = t.context;
 
   // verify if Osmosis XCS contracts were instantiated
@@ -68,7 +95,7 @@ test.only('test osmosis xcs state', async t => {
   t.assert(swapAddress, 'crosschain_swaps contract address not found');
 
   // verify if Osmosis XCS State was modified
-  const omniflixChainId = useChain('omniflix').chain.chain_id;
+  const omniflixChainId = useChain('omniflixhub').chain.chain_id;
   const {
     transferChannel: { channelId },
   } = starshipChainInfo.osmosis.connections[omniflixChainId];
@@ -86,7 +113,7 @@ test.only('test osmosis xcs state', async t => {
   t.assert(pool);
 });
 
-test.skip('BLD for OSMO, receiver on OmniFlix', async t => {
+test.only('BLD for OSMO, receiver on OmniFlix', async t => {
   const {
     wallets,
     omniflixHubWallets,
@@ -98,12 +125,13 @@ test.skip('BLD for OSMO, receiver on OmniFlix', async t => {
 
   // Provision the Agoric smart wallet
   const agoricAddr = wallets.agoricSender;
-  const omniflixAddr = omniflixHubWallets.omniflixReceiver1;
+  const omniflixAddr = omniflixHubWallets.omniflixReceiver;
   const wdUser = await provisionSmartWallet(agoricAddr, {
     BLD: 1000n,
     IST: 1000n,
   });
   t.log(`Provisioned Agoric smart wallet for ${agoricAddr}`);
+  t.log(`Provisioned OmniFlix smart wallet for ${omniflixAddr}`);
 
   const osmosisChainId = useChain('osmosis').chain.chain_id;
 
@@ -128,8 +156,12 @@ test.skip('BLD for OSMO, receiver on OmniFlix', async t => {
   const { balances: balancesBefore } = await omniflixQueryClient.queryBalances(
     omniflixAddr,
   );
+  const { balances: balancesBeforeAgoric } = await queryClient.queryBalances(
+    agoricAddr,
+  );
 
-  t.log('balancesBefore', balancesBefore);
+  t.log('Agoric balances before', balancesBeforeAgoric);
+  t.log('OmniFlix balances before', balancesBefore);
 
   // Send swap offer
   const makeAccountOfferId = `tip-ubld-uosmo-${Date.now()}`;
@@ -151,6 +183,15 @@ test.skip('BLD for OSMO, receiver on OmniFlix', async t => {
     proposal: { give: { Send: swapInAmount } },
   });
 
+  const { balances: balancesAfterAgoric } = await queryClient.queryBalances(
+    agoricAddr,
+  );
+  const { balances: balancesAfter } = await omniflixQueryClient.queryBalances(
+    omniflixAddr,
+  );
+  t.log('Agoric balances after', balancesAfterAgoric);
+  t.log('OmniFlix balances after', balancesAfter);
+
   const { balances: omniflixReceiverBalances } = await retryUntilCondition(
     () => omniflixQueryClient.queryBalances(omniflixAddr),
     ({ balances }) => {
@@ -167,14 +208,10 @@ test.skip('BLD for OSMO, receiver on OmniFlix', async t => {
     'uosmo',
   );
 
-  t.log('Expected denom hash:', expectedHash);
+  t.log('Expected denom:', 'uflix');
 
-  t.regex(omniflixReceiverBalances[0]?.denom, /^ibc/);
-  t.is(
-    omniflixReceiverBalances[0]?.denom.split('ibc/')[1],
-    expectedHash,
-    'got expected ibc denom hash',
-  );
+  t.is(omniflixReceiverBalances[0]?.denom, 'uflix');
+  t.is(omniflixReceiverBalances[0]?.amount, '121');
 });
 
 test.skip('OSMO for BLD, receiver on Agoric', async t => {

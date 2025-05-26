@@ -86,7 +86,7 @@ export const setupXcsContracts = async t => {
 
 export const createOsmosisPool = async t => {
   console.log('Creating Osmosis Pool ...');
-  const tokenInDenom = 'uflix';
+  const tokenInDenom = 'ubld';
   const tokenInAmount = '250000';
   const tokenInWeight = '1';
   const tokenOutDenom = 'uosmo';
@@ -111,6 +111,33 @@ export const createOsmosisPool = async t => {
   }
 };
 
+export const createOsmosisPoolFlix = async t => {
+  console.log('Creating Osmosis Pool Flix ...');
+  const tokenInDenom = 'uflix';
+  const tokenInAmount = '250000';
+  const tokenInWeight = '1';
+  const tokenOutDenom = 'uosmo';
+  const tokenOutAmount = '250000';
+  const tokenOutWeight = '1';
+  try {
+    const scriptPath = path.resolve(
+      dirname,
+      '../../scripts/create-osmosis-pool-flix.sh',
+    );
+    const { stdout } = await execa(scriptPath, [
+      tokenInDenom,
+      tokenInAmount,
+      tokenInWeight,
+      tokenOutDenom,
+      tokenOutAmount,
+      tokenOutWeight,
+    ]);
+    console.log('create-osmosis-pool-flix script output:', stdout);
+  } catch (error) {
+    t.fail(`create-osmosis-pool-flix failed with error: ${error}`);
+  }
+};
+
 export const setupXcsChannelLink = async (t, chainA, chainB) => {
   console.log('Setting XCS Channel Links ...');
   try {
@@ -122,6 +149,20 @@ export const setupXcsChannelLink = async (t, chainA, chainB) => {
     console.log('channel link setup output:', stdout);
   } catch (error) {
     t.fail(`channel link setup failed with error: ${error}`);
+  }
+};
+
+export const setupRoutes = async (t, denom1, denom2) => {
+  console.log('Setting XCS Routes ...');
+  try {
+    const scriptPath = path.resolve(
+      dirname,
+      '../../scripts/setup-xcs-routes.sh',
+    );
+    const { stdout } = await execa(scriptPath, [denom1, denom2]);
+    console.log('routes setup output:', stdout);
+  } catch (error) {
+    t.fail(`routes setup failed with error: ${error}`);
   }
 };
 

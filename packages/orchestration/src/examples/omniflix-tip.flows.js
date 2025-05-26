@@ -2,7 +2,7 @@ import { NonNullish, makeTracer } from '@agoric/internal';
 import { Fail, makeError, q } from '@endo/errors';
 import { M, mustMatch } from '@endo/patterns';
 
-const trace = makeTracer('SwapAnything.Flow');
+const trace = makeTracer('OmniflixTip.Flow');
 
 const { entries } = Object;
 
@@ -166,8 +166,16 @@ export const tipFlow = async (
       trace(`completed transfer to ${receiverAddr}`);
     } else {
       const memo = buildXCSMemo(offerArgs);
-      trace(memo);
+      trace(JSON.stringify(memo, null, 2));
       void log(`sending transfer with ${q(memo)}`);
+
+      try {
+        const balance = await sharedLocalAccount.getBalances();
+        trace(`balance`);
+        trace(JSON.stringify(balance, null, 2));
+      } catch (e) {
+        console.log('Error getting balances', e);
+      }
 
       await sharedLocalAccount.transfer(
         {

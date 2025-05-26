@@ -5,26 +5,26 @@ shopt -s expand_aliases
 
 alias osmosis-cli="kubectl exec -i osmosislocal-genesis-0 -c validator -- /bin/bash -c"
 alias osmosis-exec="kubectl exec -i osmosislocal-genesis-0 -c validator -- osmosisd"
-alias agoric-exec="kubectl exec -i agoriclocal-genesis-0 -c validator -- agd"
-alias hermes-exec="kubectl exec -i hermes-agoric-osmosis-0 -c relayer -- hermes"
+alias omniflix-exec="kubectl exec -i omniflixhublocal-genesis-0 -c validator -- omniflixhubd"
+alias hermes-exec="kubectl exec -i hermes-osmosis-omniflixhub-0 -c relayer -- hermes"
 
-AGORIC_WALLET="test1"
-AGORIC_ADDRESS=$(agoric-exec keys show ${AGORIC_WALLET} -a)
+OMNIFLIXHUB_WALLET="test1"
+OMNIFLIXHUB_ADDRESS=$(omniflix-exec keys show ${OMNIFLIXHUB_WALLET} -a)
 OSMOSIS_WALLET="test1"
 OSMOSIS_ADDRESS=$(osmosis-exec keys show ${OSMOSIS_WALLET} -a)
 SWAPROUTER_OWNER_WALLET="genesis"
 SWAPROUTER_OWNER_ADDRESS=$(osmosis-exec keys show ${SWAPROUTER_OWNER_WALLET} -a)
 
-CHANNEL_INFO=$(hermes-exec --json query channels --show-counterparty --chain agoriclocal \
+CHANNEL_INFO=$(hermes-exec --json query channels --show-counterparty --chain omniflixhublocal \
   | jq '[.][] | select(.result) | .result[] | select(.chain_id_b == "osmosislocal")')
-AGORIC_OSMOSIS_CHANNEL=$(echo "$CHANNEL_INFO" | jq -r '.channel_a')
-OSMOSIS_AGORIC_CHANNEL=$(echo "$CHANNEL_INFO" | jq -r '.channel_b')
-AGORIC_OSMOSIS_PORT="transfer"
+OMNIFLIXHUB_OSMOSIS_CHANNEL=$(echo "$CHANNEL_INFO" | jq -r '.channel_a')
+OSMOSIS_OMNIFLIXHUB_CHANNEL=$(echo "$CHANNEL_INFO" | jq -r '.channel_b')
+OMNIFLIXHUB_OSMOSIS_PORT="transfer"
 
-AGORIC_TOKEN_DENOM="$1"
-AGORIC_TOKEN_TRANSFER_AMOUNT="250000000000"
+OMNIFLIXHUB_TOKEN_DENOM="$1"
+OMNIFLIXHUB_TOKEN_TRANSFER_AMOUNT="250000000000"
 
-IBC_DENOM=$(echo -n "$AGORIC_OSMOSIS_PORT/$OSMOSIS_AGORIC_CHANNEL/$AGORIC_TOKEN_DENOM" | shasum -a 256 | awk '{print toupper($1)}')
+IBC_DENOM=$(echo -n "$OMNIFLIXHUB_OSMOSIS_PORT/$OSMOSIS_OMNIFLIXHUB_CHANNEL/$OMNIFLIXHUB_TOKEN_DENOM" | shasum -a 256 | awk '{print toupper($1)}')
 
 TOKEN_IN_DENOM="ibc/$IBC_DENOM"
 TOKEN_IN_AMOUNT="$2"
@@ -36,24 +36,24 @@ SWAP_FEE="0.01"
 EXIT_FEE="0.00"
 FUTURE_GOVERNOR=""
 
-POOL_CONFIG_FILE="$AGORIC_TOKEN_DENOM-$TOKEN_OUT_DENOM-pool-config.json"
+POOL_CONFIG_FILE="$OMNIFLIXHUB_TOKEN_DENOM-$TOKEN_OUT_DENOM-pool-config.json"
 POOL_CONFIG_DEST="/opt/$POOL_CONFIG_FILE"
 
 MAX_RETRIES="5"
 DELAY="5"
 
 # print values of all variables
-echo "AGORIC_WALLET: $AGORIC_WALLET"
-echo "AGORIC_ADDRESS: $AGORIC_ADDRESS"
+echo "OMNIFLIXHUB_WALLET: $OMNIFLIXHUB_WALLET"
+echo "OMNIFLIXHUB_ADDRESS: $OMNIFLIXHUB_ADDRESS"
 echo "OSMOSIS_WALLET: $OSMOSIS_WALLET"
 echo "OSMOSIS_ADDRESS: $OSMOSIS_ADDRESS"
 echo "SWAPROUTER_OWNER_WALLET: $SWAPROUTER_OWNER_WALLET"
 echo "SWAPROUTER_OWNER_ADDRESS: $SWAPROUTER_OWNER_ADDRESS"
-echo "AGORIC_OSMOSIS_CHANNEL: $AGORIC_OSMOSIS_CHANNEL"
-echo "OSMOSIS_AGORIC_CHANNEL: $OSMOSIS_AGORIC_CHANNEL"
-echo "AGORIC_OSMOSIS_PORT: $AGORIC_OSMOSIS_PORT"
-echo "AGORIC_TOKEN_DENOM: $AGORIC_TOKEN_DENOM"
-echo "AGORIC_TOKEN_TRANSFER_AMOUNT: $AGORIC_TOKEN_TRANSFER_AMOUNT"
+echo "OMNIFLIXHUB_OSMOSIS_CHANNEL: $OMNIFLIXHUB_OSMOSIS_CHANNEL"
+echo "OSMOSIS_OMNIFLIXHUB_CHANNEL: $OSMOSIS_OMNIFLIXHUB_CHANNEL"
+echo "OMNIFLIXHUB_OSMOSIS_PORT: $OMNIFLIXHUB_OSMOSIS_PORT"
+echo "OMNIFLIXHUB_TOKEN_DENOM: $OMNIFLIXHUB_TOKEN_DENOM"
+echo "OMNIFLIXHUB_TOKEN_TRANSFER_AMOUNT: $OMNIFLIXHUB_TOKEN_TRANSFER_AMOUNT"
 echo "IBC_DENOM: $IBC_DENOM"
 
 
@@ -74,27 +74,27 @@ jq -n \
     "future-governor": $futureGovernor
   }' > "$POOL_CONFIG_FILE"
 
-echo "Verifying if Agoric wallet has enough funds ..."
-agoric_balance_json=$(agoric-exec query bank balances $AGORIC_ADDRESS --denom $AGORIC_TOKEN_DENOM -o json)
-agoric_balance=$(jq -r '.amount' <<< "$agoric_balance_json")
+echo "Verifying if OmniflixHub wallet has enough funds ..."
+omniflixhub_balance_json=$(omniflix-exec query bank balance $OMNIFLIXHUB_ADDRESS $OMNIFLIXHUB_TOKEN_DENOM -o json)
+omniflixhub_balance=$(jq -r '.balance.amount' <<< "$omniflixhub_balance_json")
 
-if [ "$agoric_balance" -le "$AGORIC_TOKEN_TRANSFER_AMOUNT" ]; then
+if [ "$omniflixhub_balance" -le "$OMNIFLIXHUB_TOKEN_TRANSFER_AMOUNT" ]; then
   echo "Balance is NOT sufficient. Exiting..."
   exit 1
 fi
 
-echo "Starting IBC transfer from Agoric to Osmosis ..."
-agoric-exec tx ibc-transfer transfer $AGORIC_OSMOSIS_PORT $AGORIC_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${AGORIC_TOKEN_TRANSFER_AMOUNT}${AGORIC_TOKEN_DENOM} --from $AGORIC_ADDRESS --yes
+echo "Starting IBC transfer from OmniflixHub to Osmosis ..."
+omniflix-exec tx ibc-transfer transfer $OMNIFLIXHUB_OSMOSIS_PORT $OMNIFLIXHUB_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${OMNIFLIXHUB_TOKEN_TRANSFER_AMOUNT}${OMNIFLIXHUB_TOKEN_DENOM} --from $OMNIFLIXHUB_ADDRESS --yes
 # print the above command
-echo "Command: agoric-exec tx ibc-transfer transfer $AGORIC_OSMOSIS_PORT $AGORIC_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${AGORIC_TOKEN_TRANSFER_AMOUNT}${AGORIC_TOKEN_DENOM} --from $AGORIC_ADDRESS --yes"
+echo "Command: omniflix-exec tx ibc-transfer transfer $OMNIFLIXHUB_OSMOSIS_PORT $OMNIFLIXHUB_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${OMNIFLIXHUB_TOKEN_TRANSFER_AMOUNT}${OMNIFLIXHUB_TOKEN_DENOM} --from $OMNIFLIXHUB_ADDRESS --yes"
 
 echo "Wait for a moment after IBC transfer..."
 sleep 10
 
 echo "Verifying if Osmosis wallet has the funds ..."
 
-# send an IBC transfer to Osmosis from Agoric
-agoric-exec tx ibc-transfer transfer $AGORIC_OSMOSIS_PORT $AGORIC_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${AGORIC_TOKEN_TRANSFER_AMOUNT}${AGORIC_TOKEN_DENOM} --from $AGORIC_ADDRESS --yes
+# send an IBC transfer to Osmosis from OmniflixHub
+omniflix-exec tx ibc-transfer transfer $OMNIFLIXHUB_OSMOSIS_PORT $OMNIFLIXHUB_OSMOSIS_CHANNEL $OSMOSIS_ADDRESS ${OMNIFLIXHUB_TOKEN_TRANSFER_AMOUNT}${OMNIFLIXHUB_TOKEN_DENOM} --from $OMNIFLIXHUB_ADDRESS --yes
 
 for ((i = 1; i <= MAX_RETRIES; i++)); do
   echo "Attempt $i of $MAX_RETRIES..."
