@@ -78,7 +78,7 @@ test.before(async t => {
   const agoricDenomHash = crypto.createHash('sha256').update(agoricPath).digest('hex').toUpperCase();
   const omniflixDenomHash = crypto.createHash('sha256').update(omniflixPath).digest('hex').toUpperCase();
 
-  // await setupRoutes(t, agoricDenomHash, omniflixDenomHash);
+  await setupRoutes(t, agoricDenomHash, omniflixDenomHash);
 
   // @ts-expect-error type
   t.context = { ...common, wallets, omniflixHubWallets, waitForBlock, useChain };
@@ -139,6 +139,16 @@ test.only('BLD for OSMO, receiver on OmniFlix', async t => {
     transferChannel: { channelId },
   } = starshipChainInfo.agoric.connections[osmosisChainId];
 
+  const omniflixChainId = useChain('omniflixhub').chain.chain_id;
+  const {
+    transferChannel: { channelId: omniflixChannelId },
+  } = starshipChainInfo.osmosis.connections[omniflixChainId];
+  t.log('Channel ID:', omniflixChannelId);
+
+  const omniflixPath = `transfer/${omniflixChannelId}/uflix`;
+
+  const omniflixDenomHash = crypto.createHash('sha256').update(omniflixPath).digest('hex').toUpperCase();
+
   const { swapAddress } = await getXcsContractsAddress();
 
   const doOffer = makeDoOffer(wdUser);
@@ -176,7 +186,7 @@ test.only('BLD for OSMO, receiver on OmniFlix', async t => {
       // TODO: get the contract address dynamically
       destAddr: swapAddress,
       receiverAddr: omniflixAddr,
-      outDenom: 'ibc/CD554D83F2BB3CAFCD98BD054CB08DD88C818473DD98FA35C2B900BAAD508C9C',
+      outDenom: `ibc/${omniflixDenomHash}`,
       slippage: { slippagePercentage: '20', windowSeconds: 10 },
       onFailedDelivery: 'do_nothing',
     },
