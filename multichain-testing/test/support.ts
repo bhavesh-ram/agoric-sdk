@@ -43,7 +43,7 @@ export const chainConfig: Record<string, { expectedAddressPrefix: string }> = {
 } as const;
 
 const makeKeyring = async (
-  e2eTools: Pick<E2ETools, 'addKey' | 'deleteKey' | 'addOmniflixHubKey' | 'deleteOmniflixHubKey'>,
+  e2eTools: Pick<E2ETools, 'addKey' | 'deleteKey' | 'addOmniflixHubKey' | 'deleteOmniflixHubKey' | 'addCosmosHubKey' | 'deleteCosmosHubKey'>,
 ) => {
   let _keys = ['user1'];
   const setupTestKeys = async (
@@ -69,10 +69,26 @@ const makeKeyring = async (
     _keys = keys;
     const wallets: Record<string, string> = {};
     for (const i in keys) {
-      console.log('ADDING OMNIFLIX HUB KEY', keys[i], mnemonics?.[i]);
       const mnemonic = mnemonics?.[i] || generateMnemonic();
-      console.log('MNEMONIC', mnemonic);
       const res = await e2eTools.addOmniflixHubKey(
+        keys[i],
+        mnemonic,
+      );
+      const { address } = JSON.parse(res);
+      wallets[keys[i]] = address;
+    }
+    return wallets;
+  }
+
+  const setupCosmosHubTestKeys = async (
+    keys = ['user1'],
+    mnemonics?: (string | undefined)[],
+  ) => {
+    _keys = keys;
+    const wallets: Record<string, string> = {};
+    for (const i in keys) {
+      const mnemonic = mnemonics?.[i] || generateMnemonic();
+      const res = await e2eTools.addCosmosHubKey(
         keys[i],
         mnemonic,
       );
@@ -96,7 +112,14 @@ const makeKeyring = async (
       ),
     ).catch();
 
-  return { setupTestKeys, deleteTestKeys, setupOmniflixHubTestKeys, deleteOmniflixHubTestKeys };
+  const deleteCosmosHubTestKeys = (keys: string[] = []) =>
+    Promise.allSettled(
+      Array.from(new Set([...keys, ..._keys])).map(key =>
+        e2eTools.deleteCosmosHubKey(key).catch(),
+      ),
+    ).catch();
+
+  return { setupTestKeys, deleteTestKeys, setupOmniflixHubTestKeys, deleteOmniflixHubTestKeys, deleteCosmosHubTestKeys, setupCosmosHubTestKeys };
 };
 
 export const commonSetup = async (
@@ -220,7 +243,8 @@ export const commonSetup = async (
 };
 
 export type SetupContext = Awaited<ReturnType<typeof commonSetup>>;
-export type SetupContextWithWallets = Omit<SetupContext, 'setupTestKeys' | 'setupOmniflixHubTestKeys'> & {
+export type SetupContextWithWallets = Omit<SetupContext, 'setupTestKeys' | 'setupOmniflixHubTestKeys' | 'setupCosmosHubTestKeys'> & {
   wallets: Record<string, string>;
   omniflixHubWallets: Record<string, string>;
+  cosmoshubWallets: Record<string, string>;
 };

@@ -25,38 +25,48 @@ import {
   getPoolRoute,
   getPool,
   setupRoutes,
+  createOsmosisPoolAtom,
 } from './helpers.js';
 
 const test = anyTest as TestFn<SetupContextWithWallets>;
 
 const accounts = ['agoricSender', 'agoricReceiver'];
 const omniflixHubAccounts = ['omniflixReceiver', 'omniflixReceiver3'];
+const cosmoshubAccounts = ['cosmosSender', 'cosmosReceiver'];
 
 const contractName = 'omniflixTip';
 const contractBuilder =
   '../packages/builders/scripts/testing/init-omniflix-tip.js';
 
 test.before(async t => {
-  const { setupTestKeys, setupOmniflixHubTestKeys, useChain, ...common } = await commonSetup(t);
-  const { commonBuilderOpts, deleteTestKeys, deleteOmniflixHubTestKeys, startContract } = common;
+  const { setupTestKeys, setupOmniflixHubTestKeys, setupCosmosHubTestKeys, useChain, ...common } = await commonSetup(t);
+  const { commonBuilderOpts, deleteTestKeys, deleteOmniflixHubTestKeys, deleteCosmosHubTestKeys, startContract } = common;
   const { waitForBlock } = makeBlockTool({
     rpc: makeHttpClient('http://localhost:26657', fetch),
     delay: ms => new Promise(resolve => setTimeout(resolve, ms)),
   });
   await deleteTestKeys(accounts).catch();
   await deleteOmniflixHubTestKeys(omniflixHubAccounts).catch();
+  await deleteCosmosHubTestKeys(cosmoshubAccounts).catch();
   const wallets = await setupTestKeys(accounts);
+  // const wallets = {
+  //   agoricSender: 'agoric1nvgzmwrzt4qyrytg72cgwkcyahcqdae5v6cmq9',
+  //   agoricReceiver: 'agoric1z5etptvemhuvqf80wd2hfxrettpxkklq5ef28r',
+  // };
   const omniflixHubWallets = await setupOmniflixHubTestKeys(omniflixHubAccounts);
+  const cosmoshubWallets = await setupCosmosHubTestKeys(cosmoshubAccounts);
   console.log('WALLETS', wallets);
   console.log('OMNIFLIX HUB WALLETS', omniflixHubWallets);
+  console.log('COSMOS HUB WALLETS', cosmoshubWallets);
 
   await startContract(contractName, contractBuilder, commonBuilderOpts);
 
   await setupXcsContracts(t);
   await createOsmosisPool(t);
   await createOsmosisPoolFlix(t);
+  await createOsmosisPoolAtom(t);
   await setupXcsChannelLink(t, 'agoric', 'osmosis');
-  // await setupXcsChannelLink(t, 'cosmoshub', 'osmosis');
+  await setupXcsChannelLink(t, 'cosmoshub', 'osmosis');
   await setupXcsChannelLink(t, 'omniflixhub', 'osmosis');
   await setupXcsPrefix(t);
 
@@ -72,16 +82,25 @@ test.before(async t => {
   } = starshipChainInfo.osmosis.connections[omniflixChainId];
   t.log('Channel ID:', omniflixChannelId);
 
+  const cosmoshubChainId = useChain('cosmoshub').chain.chain_id;
+  const {
+    transferChannel: { channelId: cosmoshubChannelId },
+  } = starshipChainInfo.osmosis.connections[cosmoshubChainId];
+  t.log('Channel ID:', cosmoshubChannelId);
+
   const agoricPath = `transfer/${agoricChannelId}/ubld`;
   const omniflixPath = `transfer/${omniflixChannelId}/uflix`;
+  const cosmoshubPath = `transfer/${cosmoshubChannelId}/uatom`;
 
   const agoricDenomHash = crypto.createHash('sha256').update(agoricPath).digest('hex').toUpperCase();
   const omniflixDenomHash = crypto.createHash('sha256').update(omniflixPath).digest('hex').toUpperCase();
+  const cosmoshubDenomHash = crypto.createHash('sha256').update(cosmoshubPath).digest('hex').toUpperCase();
 
   await setupRoutes(t, agoricDenomHash, omniflixDenomHash);
+  await setupRoutes(t, cosmoshubDenomHash, omniflixDenomHash);
 
   // @ts-expect-error type
-  t.context = { ...common, wallets, omniflixHubWallets, waitForBlock, useChain };
+  t.context = { ...common, wallets, omniflixHubWallets, cosmoshubWallets, waitForBlock, useChain };
 });
 
 test.skip('test osmosis xcs state', async t => {
@@ -113,7 +132,7 @@ test.skip('test osmosis xcs state', async t => {
   t.assert(pool);
 });
 
-test.only('BLD for OSMO, receiver on OmniFlix', async t => {
+test.only('BLD for FLIX, receiver on OmniFlix', async t => {
   const {
     wallets,
     omniflixHubWallets,
@@ -213,33 +232,50 @@ test.only('BLD for OSMO, receiver on OmniFlix', async t => {
   );
   t.log(omniflixReceiverBalances);
 
-  const { hash: expectedHash } = await omniflixQueryClient.queryDenom(
-    `transfer/${channelId}`,
-    'uosmo',
-  );
-
   t.log('Expected denom:', 'uflix');
 
   t.is(omniflixReceiverBalances[0]?.denom, 'uflix');
   t.is(omniflixReceiverBalances[0]?.amount, '121');
 });
 
-test.skip('OSMO for BLD, receiver on Agoric', async t => {
+test.skip('ATOM for FLIX, receiver on OmniFlix', async t => {
   const {
     wallets,
+    cosmoshubWallets,
+    omniflixHubWallets,
     provisionSmartWallet,
+    faucetTools,
     vstorageClient,
     retryUntilCondition,
     useChain,
   } = t.context;
 
   // Provision the Agoric smart wallet
-  const agoricAddr = wallets.agoricReceiver;
+  const agoricAddr = wallets.agoricSender;
+  const cosmoshubAddr = cosmoshubWallets.cosmosSender;
+  const omniflixAddr = omniflixHubWallets.omniflixReceiver;
+  await faucetTools.fundFaucet([['cosmoshub', 'uatom']]);
   const wdUser = await provisionSmartWallet(agoricAddr, {
-    BLD: 1000n,
+    ATOM: 1_000n,
     IST: 1000n,
+    BLD: 1000n,
   });
   t.log(`Provisioned Agoric smart wallet for ${agoricAddr}`);
+  const osmosisChainId = useChain('osmosis').chain.chain_id;
+
+  const {
+    transferChannel: { channelId },
+  } = starshipChainInfo.agoric.connections[osmosisChainId];
+
+  const omniflixChainId = useChain('omniflixhub').chain.chain_id;
+  const {
+    transferChannel: { channelId: omniflixChannelId },
+  } = starshipChainInfo.osmosis.connections[omniflixChainId];
+  t.log('Channel ID:', omniflixChannelId);
+
+  const omniflixPath = `transfer/${omniflixChannelId}/uflix`;
+
+  const omniflixDenomHash = crypto.createHash('sha256').update(omniflixPath).digest('hex').toUpperCase();
 
   const { swapAddress } = await getXcsContractsAddress();
 
@@ -249,29 +285,28 @@ test.skip('OSMO for BLD, receiver on Agoric', async t => {
   const apiUrl = await useChain('agoric').getRestEndpoint();
   const queryClient = makeQueryClient(apiUrl);
 
+  const omniflixApiUrl = await useChain('omniflixhub').getRestEndpoint();
+  const omniflixQueryClient = makeQueryClient(omniflixApiUrl);
+
   const brands = await vstorageClient.queryData('published.agoricNames.brand');
-  const bldBrand = Object.fromEntries(brands).OSMO;
-  const swapInAmount = AmountMath.make(bldBrand, 75n);
-  const { balances: balancesBefore } = await queryClient.queryBalances(
-    wallets.agoricReceiver,
+  console.log('brands', brands);
+  const atomBrand = Object.fromEntries(brands).ATOM;
+  const swapInAmount = AmountMath.make(atomBrand, 125n);
+  const { balances: balancesBefore } = await omniflixQueryClient.queryBalances(
+    omniflixAddr,
+  );
+  const { balances: balancesBeforeAgoric } = await queryClient.queryBalances(
+    agoricAddr,
   );
 
-  const osmosisApiUrl = await useChain('osmosis').getRestEndpoint();
-  const osmosisQueryClient = makeQueryClient(osmosisApiUrl);
+  t.log('Agoric balances before', balancesBeforeAgoric);
+  t.log('OmniFlix balances before', balancesBefore);
 
-  const agoricChainId = useChain('agoric').chain.chain_id;
-
-  const {
-    transferChannel: { channelId },
-  } = starshipChainInfo.osmosis.connections[agoricChainId];
-
-  const { hash: outDenomHash } = await osmosisQueryClient.queryDenom(
-    `transfer/${channelId}`,
-    'ubld',
-  );
+  console.log('balancesBeforeAgoric', balancesBeforeAgoric);
+  console.log('balancesBefore', balancesBefore);
 
   // Send swap offer
-  const makeAccountOfferId = `tip-ubld-uosmo-${Date.now()}`;
+  const makeAccountOfferId = `tip-uatom-uflix-${Date.now()}`;
   await doOffer({
     id: makeAccountOfferId,
     invitationSpec: {
@@ -282,31 +317,37 @@ test.skip('OSMO for BLD, receiver on Agoric', async t => {
     offerArgs: {
       // TODO: get the contract address dynamically
       destAddr: swapAddress,
-      receiverAddr: wallets.agoricReceiver,
-      outDenom: `ibc/${outDenomHash}`,
+      receiverAddr: omniflixAddr,
+      outDenom: `ibc/${omniflixDenomHash}`,
       slippage: { slippagePercentage: '20', windowSeconds: 10 },
       onFailedDelivery: 'do_nothing',
     },
     proposal: { give: { Send: swapInAmount } },
   });
 
-  const { balances: agoricReceiverBalances } = await retryUntilCondition(
-    () => queryClient.queryBalances(wallets.agoricReceiver),
+  const { balances: balancesAfterAgoric } = await queryClient.queryBalances(
+    agoricAddr,
+  );
+  const { balances: balancesAfter } = await omniflixQueryClient.queryBalances(
+    omniflixAddr,
+  );
+  t.log('Agoric balances after', balancesAfterAgoric);
+  t.log('OmniFlix balances after', balancesAfter);
+
+  const { balances: omniflixReceiverBalances } = await retryUntilCondition(
+    () => omniflixQueryClient.queryBalances(omniflixAddr),
     ({ balances }) => {
       const balancesBeforeAmount = BigInt(balancesBefore[0]?.amount || 0);
       const currentBalanceAmount = BigInt(balances[0]?.amount || 0);
-      return currentBalanceAmount < balancesBeforeAmount;
+      return currentBalanceAmount > balancesBeforeAmount;
     },
     'Deposit reflected in localOrchAccount balance',
   );
-  t.log(agoricReceiverBalances);
+  t.log(omniflixReceiverBalances);
+  t.log('Expected denom:', 'uflix');
 
-  t.assert(
-    BigInt(balancesBefore[0].amount) > BigInt(agoricReceiverBalances[0].amount),
-  );
-  t.assert(
-    BigInt(balancesBefore[1].amount) < BigInt(agoricReceiverBalances[1].amount),
-  );
+  t.is(omniflixReceiverBalances[0]?.denom, 'uflix');
+  t.is(omniflixReceiverBalances[0]?.amount, '121');
 });
 
 test.skip('BLD for OSMO, receiver on CosmosHub', async t => {
@@ -584,7 +625,8 @@ test.skip('address hook - BLD for OSMO, receiver on Agoric', async t => {
 });
 
 test.after(async t => {
-  const { deleteTestKeys, deleteOmniflixHubTestKeys } = t.context;
+  const { deleteTestKeys, deleteOmniflixHubTestKeys, deleteCosmosHubTestKeys } = t.context;
   deleteTestKeys(accounts);
   deleteOmniflixHubTestKeys(omniflixHubAccounts);
+  deleteCosmosHubTestKeys(cosmoshubAccounts);
 });

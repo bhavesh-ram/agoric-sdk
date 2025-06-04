@@ -31,6 +31,7 @@ import {
    *     consume: {
    *       BLD: Issuer<'nat'>;
    *       IST: Issuer<'nat'>;
+   *       ATOM: Issuer<'nat'>;
    *     };
    *   };
    * }} powers
@@ -59,7 +60,7 @@ import {
         produce: { omniflixTip: produceInstance },
       },
       issuer: {
-        consume: { BLD, IST },
+        consume: { BLD, IST, ATOM },
       },
     },
     { options: { chainInfo, assetInfo } },
@@ -86,6 +87,7 @@ import {
     const issuerKeywordRecord = harden({
       BLD: await BLD,
       IST: await IST,
+      ATOM: await ATOM,
     });
     trace('issuerKeywordRecord', issuerKeywordRecord);
   
@@ -121,7 +123,7 @@ import {
             produce: { omniflixTip: true },
           },
           issuer: {
-            consume: { BLD: true, IST: true },
+            consume: { BLD: true, IST: true, ATOM: true },
           },
         },
       },

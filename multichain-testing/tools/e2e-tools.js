@@ -12,6 +12,7 @@ import { dedup, makeQueryKit, poll } from './queryKit.js';
 import { makeVStorage } from './batchQuery.js';
 import { makeRetryUntilCondition } from './sleep.js';
 import { makeTracer } from '@agoric/internal';
+import { makeCosmosHubd } from './cosmoshub-lib.js';
 
 /**
  * @import {OfferSpec} from '@agoric/smart-wallet/src/offers.js';
@@ -522,6 +523,7 @@ export const makeE2ETools = async (
 ) => {
   const agd = makeAgd({ execFileSync }).withOpts({ keyringBackend: 'test' });
   const omniflixhubd = makeOmniflixHubd({ execFileSync }).withOpts({ keyringBackend: 'test' });
+  const cosmoshubd = makeCosmosHubd({ execFileSync }).withOpts({ keyringBackend: 'test' });
   const rpc = makeHttpClient(rpcAddress, fetch);
   const lcd = makeAPI(apiAddress, { fetch });
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -650,10 +652,22 @@ export const makeE2ETools = async (
         // @ts-expect-error XXX
         Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic,
       ),
+    /**
+     * @param {string} name
+     * @param {EnglishMnemonic | string} mnemonic
+     */
+    addCosmosHubKey: async (name, mnemonic) =>
+      cosmoshubd.keys.add(
+        name,
+        // @ts-expect-error XXX
+        Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic,
+      ),
     /** @param {string} name */
     deleteOmniflixHubKey: async name => omniflixhubd.keys.delete(name),
     /** @param {string} name */
     deleteKey: async name => agd.keys.delete(name),
+    /** @param {string} name */
+    deleteCosmosHubKey: async name => cosmoshubd.keys.delete(name),
     copyFiles,
     agd,
   };
